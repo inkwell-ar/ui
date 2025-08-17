@@ -26,10 +26,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useTheme } from "@/hooks/useTheme";
 import { useWanderConnectContext } from "./WanderConnectProvider";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useThemeContext } from "@/contexts/theme-context";
 
 export function NavUser({
   user,
@@ -41,7 +41,7 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useThemeContext();
   const { isConnected, connect, disconnect, userDetails, wander } =
     useWanderConnectContext();
   const [userData, setUserData] = useState(user);

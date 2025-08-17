@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { ThemeProvider } from "./components/ThemeProvider.tsx";
+import { ThemeProvider } from "./contexts/theme-context.tsx";
 import { WanderConnectProvider } from "./components/WanderConnectProvider.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
 

@@ -1,13 +1,17 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "./ui/button";
-import { useThemeContext } from "./ThemeProvider";
+import { useThemeContext } from "@/contexts/theme-context";
 
 const ThemeToggle = () => {
-  const { isDark, toggleTheme } = useThemeContext();
+  const { theme, toggleTheme } = useThemeContext();
 
   return (
     <Button onClick={toggleTheme}>
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {theme === "dark" ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
     </Button>
   );
 };

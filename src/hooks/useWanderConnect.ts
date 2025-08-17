@@ -1,4 +1,4 @@
-import { useThemeContext } from "@/components/ThemeProvider";
+import { useThemeContext } from "@/contexts/theme-context";
 import type {
   AuthInfo,
   AuthProviderType,
@@ -126,11 +126,13 @@ export function useWanderConnect(props?: {
       clientId: "FREE_TRIAL",
       baseURL: baseURLstring,
       baseServerURL: baseServerURLstring,
-      theme: theme,
+      //   theme: theme,
       button: isButtonVisible,
       onAuth: handleOnAuth,
       onBackup: handleOnBackup,
     });
+
+    wanderInstance.setTheme(theme);
 
     setWander(wanderInstance);
     // For easier development / testing of WanderConnect-specific features (e.g. theming) from the Console:
@@ -158,10 +160,10 @@ export function useWanderConnect(props?: {
   }, []);
 
   useEffect(() => {
-    console.log(`theme useEffect: ${theme}`);
-    if (!theme) return;
-    wander?.setTheme(theme);
-  }, [theme]);
+    console.log(`theme useEffect: ${theme} - ${wander}`);
+    if (!theme || !wander) return;
+    wander.setTheme(theme);
+  }, [theme, wander]);
 
   useEffect(() => {
     console.log("isAuthenticated useEffect");
