@@ -19,3 +19,13 @@ export const REQUIRED_PERMISSIONS = [
   "DISPATCH",
   "ACCESS_TOKENS",
 ];
+
+export const THEME_STORAGE_KEY = "inkwell-theme";
+export const ENVIRONMENT_STORAGE_KEY = "wander-connect-environment";
+
+export const DEFAULT_CLIENT_ID = "FREE_TRIAL";
+
+export const DEFAULT_BASE_URL = "https://connect.wander.app";
+export const DEFAULT_SERVER_BASE_URL = "https://connect-api.wander.app";
+export const DEV_BASE_URL = "https://connect.wander.app";
+export const DEV_SERVER_BASE_URL = "https://connect-api.wander.app";

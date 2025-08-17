@@ -1,3 +1,4 @@
+import { THEME_STORAGE_KEY } from "@/lib/constants";
 import React, {
   createContext,
   useContext,
@@ -5,8 +6,6 @@ import React, {
   useState,
   type PropsWithChildren,
 } from "react";
-
-const THEME_STORAGE_KEY = "inkwell-theme";
 
 export type Theme = "light" | "dark";
 
@@ -23,7 +22,9 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(
   undefined
 );
 
-export const ThemeProvider = ({ children }: ThemeContextProviderProps) => {
+export const ThemeContextProvider = ({
+  children,
+}: ThemeContextProviderProps) => {
   const [theme, setTheme] = useState<Theme>(() => {
     // Initialize from localStorage
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);

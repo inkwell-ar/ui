@@ -8,6 +8,7 @@ import {
   Moon,
   Settings,
   LogIn,
+  LoaderPinwheel,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,10 +27,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useWanderConnectContext } from "./WanderConnectProvider";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useThemeContext } from "@/contexts/theme-context";
+import { useWCContext } from "@/contexts/wc-context";
 
 export function NavUser({
   user,
@@ -42,8 +43,15 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const { theme, toggleTheme } = useThemeContext();
-  const { isConnected, connect, disconnect, userDetails, wander } =
-    useWanderConnectContext();
+  const {
+    isLoadingWander,
+    isConnected,
+    connect,
+    disconnect,
+    userDetails,
+    wander,
+  } = useWCContext();
+  // useWanderConnectContext();
   const [userData, setUserData] = useState(user);
 
   useEffect(() => {
@@ -67,6 +75,9 @@ export function NavUser({
           <SidebarMenuButton onClick={connect}>
             <LogIn />
             <span>Log In</span>
+            {isLoadingWander && (
+              <LoaderPinwheel className="ml-auto animate-spin" />
+            )}
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

@@ -2,17 +2,20 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
-import { ThemeProvider } from "./contexts/theme-context.tsx";
-import { WanderConnectProvider } from "./components/WanderConnectProvider.tsx";
+import { ThemeContextProvider } from "./contexts/theme-context.tsx";
 import { Toaster } from "./components/ui/sonner.tsx";
+import { WCEnvironmentContextProvider } from "./contexts/wc-environment-context.tsx";
+import { WCContextProvider } from "./contexts/wc-context.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
-      <WanderConnectProvider>
-        <App />
-        <Toaster />
-      </WanderConnectProvider>
-    </ThemeProvider>
+    <ThemeContextProvider>
+      <WCEnvironmentContextProvider>
+        <WCContextProvider>
+          <App />
+          <Toaster />
+        </WCContextProvider>
+      </WCEnvironmentContextProvider>
+    </ThemeContextProvider>
   </StrictMode>
 );
