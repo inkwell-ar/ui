@@ -1,10 +1,10 @@
-import { AppSidebar } from "./components/app-sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "./components/ui/sidebar";
-import { Separator } from "./components/ui/separator";
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,9 +12,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "./components/ui/breadcrumb";
+} from "@/components/ui/breadcrumb";
 
-function App() {
+export function App() {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -53,5 +53,3 @@ function App() {
     </SidebarProvider>
   );
 }
-
-export default App;

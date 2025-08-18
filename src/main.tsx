@@ -1,11 +1,11 @@
+import "./index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App";
-import { ThemeContextProvider } from "./contexts/theme-context.tsx";
-import { Toaster } from "./components/ui/sonner.tsx";
-import { WCEnvironmentContextProvider } from "./contexts/wc-environment-context.tsx";
-import { WCContextProvider } from "./contexts/wc-context.tsx";
+import { ThemeContextProvider } from "@/contexts/theme-context";
+import { Toaster } from "@/components/ui/sonner";
+import { WCEnvironmentContextProvider } from "@/contexts/wc-environment-context";
+import { WCContextProvider } from "@/contexts/wc-context";
+import { App } from "@/app";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
