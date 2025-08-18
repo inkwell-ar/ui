@@ -17,8 +17,6 @@ import { useWCEnvironmentContext } from "./wc-environment-context";
 import { useThemeContext } from "./theme-context";
 import { DEFAULT_CLIENT_ID } from "@/lib/constants";
 
-// TODO: Fix Sign Out
-
 type AuthType = AuthProviderType | "NATIVE_WALLET" | "";
 
 export type UserDetails = {
@@ -69,8 +67,6 @@ export const WCContextProvider = ({
   isButtonVisible = false,
   permissions = ["ACCESS_ADDRESS"],
 }: WCContextProviderProps) => {
-  /**  COPIED  */
-
   const [wander, setWander] = useState<WanderConnect | undefined>();
   const [wallet, setWallet] = useState<typeof window.arweaveWallet>();
   const [autoConnect, setAutoConnect] = useState(false);

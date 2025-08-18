@@ -45,6 +45,7 @@ export function NavUser({
   const { theme, toggleTheme } = useThemeContext();
   const {
     isLoadingWander,
+    isAuthenticated,
     isConnected,
     connect,
     disconnect,
@@ -68,7 +69,7 @@ export function NavUser({
     console.log(userDetails.picture);
   }, [userDetails, user]);
 
-  if (!isConnected)
+  if (!isConnected || !isAuthenticated)
     return (
       <SidebarMenu>
         <SidebarMenuItem>
