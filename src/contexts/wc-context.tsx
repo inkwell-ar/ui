@@ -13,7 +13,7 @@ import {
   type BackupInfo,
 } from "@wanderapp/connect";
 import type { PermissionType } from "arconnect";
-import { useWCEnvironmentContext } from "./wc-environment-context";
+import { useEnvContext } from "./env-context";
 import { useThemeContext } from "./theme-context";
 import { DEFAULT_CLIENT_ID } from "@/lib/constants";
 
@@ -80,7 +80,7 @@ export const WCContextProvider = ({
   const [backupInfo, setBackupInfo] = useState<BackupInfo>({
     backupsNeeded: 0,
   });
-  const { baseURL, baseServerURL } = useWCEnvironmentContext();
+  const { baseURL, baseServerURL } = useEnvContext();
   const { theme } = useThemeContext();
 
   // WC Event Handlers
@@ -147,6 +147,8 @@ export const WCContextProvider = ({
     console.log(" > wander: ", wander);
     if (!theme || !wander) return;
     wander.setTheme(theme);
+    // wander.setButtonTheme(theme);
+    // wander.setIframeTheme(theme);
   }, [theme, wander]);
 
   useEffect(() => {

@@ -13,42 +13,49 @@ import React, {
   type PropsWithChildren,
 } from "react";
 
-type Environment = "prod" | "dev";
+type Env = "prod" | "dev";
 
-type WCEnvironmentContextType = {
-  environment: Environment;
-  setEnvironment: React.Dispatch<React.SetStateAction<Environment>>;
+type EnvContextType = {
+  environment: Env;
+  setEnvironment: React.Dispatch<React.SetStateAction<Env>>;
   toggleEnvironment: () => void;
   baseURL: string;
   baseServerURL: string;
 };
 
-type WCEnvironmentContextProviderProps = PropsWithChildren;
+type EnvContextProviderProps = PropsWithChildren<{ env?: Env }>;
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const WCEnvironmentContext = createContext<
-  WCEnvironmentContextType | undefined
->(undefined);
+export const EnvContext = createContext<EnvContextType | undefined>(undefined);
 
-export const WCEnvironmentContextProvider = ({
+export const EnvContextProvider = ({
+  env,
   children,
-}: WCEnvironmentContextProviderProps) => {
+}: EnvContextProviderProps) => {
   const [baseURL, setBaseURL] = useState(() => {
-    // Initialize from localStorage
-    const savedEnvironment = localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
+    // Initialize from localStorage if no env was passed as param
+    const savedEnvironment =
+      env || localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
     return savedEnvironment === "dev" ? DEV_BASE_URL : DEFAULT_BASE_URL;
   });
   const [baseServerURL, setBaseServerURL] = useState(() => {
-    // Initialize from localStorage
-    const savedEnvironment = localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
+    // Initialize from localStorage is no env was passed as param
+    const savedEnvironment =
+      env || localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
     return savedEnvironment === "dev"
       ? DEV_SERVER_BASE_URL
       : DEFAULT_SERVER_BASE_URL;
   });
-  const [environment, setEnvironment] = useState<Environment>(() => {
-    // Initialize from localStorage
+  const [environment, setEnvironment] = useState<Env>(() => {
+    if (env) {
+      // Also save to localStorage
+      localStorage.setItem(ENVIRONMENT_STORAGE_KEY, env);
+      return env;
+    }
+
+    // Initialize from localStorage if no env was passed as param
     const savedEnvironment = localStorage.getItem(ENVIRONMENT_STORAGE_KEY);
-    return (savedEnvironment as Environment) || "prod";
+    return (savedEnvironment as Env) || "prod";
   });
 
   // Toggle between environments
@@ -73,7 +80,7 @@ export const WCEnvironmentContextProvider = ({
   }, [environment]);
 
   return (
-    <WCEnvironmentContext.Provider
+    <EnvContext.Provider
       value={{
         environment,
         toggleEnvironment,
@@ -83,18 +90,16 @@ export const WCEnvironmentContextProvider = ({
       }}
     >
       {children}
-    </WCEnvironmentContext.Provider>
+    </EnvContext.Provider>
   );
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useWCEnvironmentContext = () => {
-  const context = useContext(WCEnvironmentContext);
+export const useEnvContext = () => {
+  const context = useContext(EnvContext);
 
   if (!context) {
-    throw new Error(
-      "useWCEnvironmentContext must be used within a WCEnvironmentProvider"
-    );
+    throw new Error("useEnvContext must be used within a EnvProvider");
   }
 
   return context;
