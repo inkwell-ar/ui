@@ -36,43 +36,43 @@ const data = {
     },
     {
       name: "Pills",
-      logo: AudioWaveform,
+      logo: Command,
       description: "Wander",
     },
     {
       name: "Popups",
-      logo: Command,
+      logo: AudioWaveform,
       description: "Wander",
     },
   ],
   blog: [
     {
       name: "Blog Details",
-      url: "#",
+      route: "#",
       icon: Settings2,
     },
   ],
   posts: [
     {
       name: "All Posts",
-      url: "#",
+      route: "#",
       icon: List,
     },
     {
       name: "Create New Post",
-      url: "#",
+      route: "#",
       icon: Plus,
     },
   ],
   users: [
     {
       name: "All Users",
-      url: "#",
+      route: "#",
       icon: Users2,
     },
     {
       name: "Add User",
-      url: "#",
+      route: "#",
       icon: UserPlus2,
     },
   ],
@@ -85,7 +85,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <BlogSwitcher blogs={data.blogs} />
       </SidebarHeader>
       <SidebarContent>
-        {/* <NavMain items={data.navMain} /> */}
         <NavCategory name="Blog" items={data.blog} />
         <NavCategory name="Posts" items={data.posts} />
         <NavCategory name="Users" items={data.users} />

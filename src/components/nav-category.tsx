@@ -17,23 +17,21 @@ export function NavCategory({
   showMore?: boolean;
   items: {
     name: string;
-    url: string;
+    route: string;
     icon: LucideIcon;
   }[];
 }) {
   //   const { isMobile } = useSidebar();
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup className="group-data-[collapsible=icon]">
       <SidebarGroupLabel>{name}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+            <SidebarMenuButton  tooltip={item.name}>
+              <item.icon />
+              <span>{item.name}</span>
             </SidebarMenuButton>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
