@@ -112,6 +112,15 @@ export const WCContextProvider = ({
       baseServerURL,
       theme: theme,
       button: isButtonVisible,
+      iframe: {
+        routeLayout: {
+          default: "popup", // Account
+          settings: "popup", // ??
+          auth: "modal", // ??
+          "auth-request": "modal", // Connect / Sign In / Sign request?
+          account: "modal", // Backup Wallet
+        },
+      },
       onAuth: handleOnAuth,
       onBackup: setBackupInfo,
     });
