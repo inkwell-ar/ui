@@ -8,7 +8,7 @@ import {
   Moon,
   Settings,
   LogIn,
-  LoaderPinwheel,
+  LoaderCircle,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,11 +73,15 @@ export function NavUser({
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={connect}>
+          <SidebarMenuButton
+            onClick={connect}
+            tooltip="Log In"
+            className="h-12"
+          >
             <LogIn />
             <span>Log In</span>
             {isLoadingWander && (
-              <LoaderPinwheel className="ml-auto animate-spin" />
+              <LoaderCircle className="ml-auto animate-spin" />
             )}
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -92,6 +96,7 @@ export function NavUser({
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              tooltip={userData.name}
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={userData.avatar} alt={userData.name} />
