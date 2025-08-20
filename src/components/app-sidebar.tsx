@@ -1,28 +1,25 @@
-import * as React from "react"
+import * as React from "react";
 import {
   AudioWaveform,
-  BookOpen,
-  Bot,
   Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  List,
+  Plus,
   Settings2,
-  SquareTerminal,
-} from "lucide-react"
+  UserPlus2,
+  Users2,
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavCategory } from "@/components/nav-category";
+import { NavUser } from "@/components/nav-user";
+import { BlogSwitcher } from "@/components/blog-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // This is sample data.
 const data = {
@@ -31,143 +28,72 @@ const data = {
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  teams: [
+  blogs: [
     {
-      name: "Acme Inc",
+      name: "Announcements",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      description: "Wander",
     },
     {
-      name: "Acme Corp.",
+      name: "Pills",
       logo: AudioWaveform,
-      plan: "Startup",
+      description: "Wander",
     },
     {
-      name: "Evil Corp.",
+      name: "Popups",
       logo: Command,
-      plan: "Free",
+      description: "Wander",
     },
   ],
-  navMain: [
+  blog: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
+      name: "Blog Details",
       url: "#",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
     },
   ],
-  projects: [
+  posts: [
     {
-      name: "Design Engineering",
+      name: "All Posts",
       url: "#",
-      icon: Frame,
+      icon: List,
     },
     {
-      name: "Sales & Marketing",
+      name: "Create New Post",
       url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      icon: Plus,
     },
   ],
-}
+  users: [
+    {
+      name: "All Users",
+      url: "#",
+      icon: Users2,
+    },
+    {
+      name: "Add User",
+      url: "#",
+      icon: UserPlus2,
+    },
+  ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <BlogSwitcher blogs={data.blogs} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {/* <NavMain items={data.navMain} /> */}
+        <NavCategory name="Blog" items={data.blog} />
+        <NavCategory name="Posts" items={data.posts} />
+        <NavCategory name="Users" items={data.users} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
