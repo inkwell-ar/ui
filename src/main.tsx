@@ -5,7 +5,7 @@ import { ThemeContextProvider } from "@/contexts/theme-context";
 import { Toaster } from "@/components/ui/sonner";
 import { EnvContextProvider } from "@/contexts/env-context";
 import { WCContextProvider } from "@/contexts/wc-context";
-import { App } from "@/app3";
+import { App } from "@/app";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
