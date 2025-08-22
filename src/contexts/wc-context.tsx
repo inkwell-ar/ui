@@ -93,6 +93,7 @@ export const WCContextProvider = ({
     if (authStatus !== "authenticated" || !userDetails) {
       setIsConnected(false);
       setBackupInfo({ backupsNeeded: 0 });
+      setWalletAddress("");
     }
     if (authStatus === "authenticated" || authStatus === "not-authenticated")
       setIsLoadingWander(false);

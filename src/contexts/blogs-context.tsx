@@ -26,7 +26,7 @@ export const BlogsContext = createContext<BlogsContextType | undefined>(
 export const BlogsContextProvider = ({
   children,
 }: BlogsContextProviderProps) => {
-  const { walletAddress = "" } = useWCContext();
+  const { walletAddress = "", isConnected, isAuthenticated } = useWCContext();
   const [blogs, setBlogs] = useState<BlogPermission[]>([]);
   const [selectedBlog, setSelectedBlog] = useState<string>(() => {
     // Get Selected Blog from localStorage
@@ -36,6 +36,12 @@ export const BlogsContextProvider = ({
     return savedSelectedBlog || "";
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  const resetState = () => {
+    setBlogs([]);
+    setSelectedBlog("");
+    setIsLoading(false);
+  };
 
   // Effect to update localStorage
   useEffect(() => {
@@ -49,9 +55,9 @@ export const BlogsContextProvider = ({
   // Effect to update blogs & selectedBlog based on wallet selected
   useEffect(() => {
     setIsLoading(true);
-    if (!walletAddress) {
-      setBlogs([]);
-      setIsLoading(false);
+    // Reset state if disconnected
+    if (!walletAddress || !isConnected || !isAuthenticated) {
+      resetState();
       return;
     }
 
@@ -70,7 +76,7 @@ export const BlogsContextProvider = ({
       `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
     );
     setSelectedBlog(savedSelectedBlog || "");
-  }, [walletAddress]);
+  }, [walletAddress, isConnected, isAuthenticated]);
 
   return (
     <BlogsContext.Provider

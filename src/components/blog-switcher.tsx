@@ -37,7 +37,7 @@ const emptyBlogData: BlogData = {
 
 export function BlogSwitcher() {
   const { isMobile } = useSidebar();
-  const { isConnected } = useWCContext();
+  const { isConnected, isAuthenticated } = useWCContext();
   const {
     blogs,
     isLoading: isLoadingBlogs,
@@ -51,6 +51,8 @@ export function BlogSwitcher() {
   const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
 
   useEffect(() => {
+    if (!isConnected) return;
+
     const updateBlogsData = async () => {
       setIsLoadingBlogDetails(true);
       const newBlogsData: BlogData[] = blogs.map((blogPermission) => {
@@ -85,11 +87,12 @@ export function BlogSwitcher() {
         //   <img src={blogDetails.blogLogo} alt="Logo" className="h-8 w-8" />
         // );
       }
-      setBlogsData([...blogsData, ...newBlogsData]);
+      setBlogsData([emptyBlogData, ...newBlogsData]);
       setIsLoadingBlogDetails(false);
     };
+
     updateBlogsData();
-  }, [blogs]);
+  }, [blogs, isConnected]);
 
   useEffect(() => {
     console.log("blogs data changed: ", blogsData);
@@ -118,7 +121,7 @@ export function BlogSwitcher() {
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              disabled={!isConnected}
+              disabled={!isConnected || !isAuthenticated}
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex shrink-0 aspect-square size-8 items-center justify-center rounded-lg">
                 {activeBlogData && <activeBlogData.logo className="size-4" />}
