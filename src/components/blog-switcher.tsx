@@ -1,4 +1,3 @@
-import * as React from "react";
 import { ChevronsUpDown, Plus } from "lucide-react";
 
 import {
@@ -16,21 +15,29 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useEffect, useState } from "react";
 
-export function BlogSwitcher({
-  blogs,
-}: {
-  blogs: {
-    name: string;
-    logo: React.ElementType;
-    description: string;
-  }[];
-}) {
+export type BlogData = {
+  name: string;
+  logo: React.ElementType;
+  description: string;
+};
+
+export type BlogSwitcherProps = {
+  blogs: BlogData[];
+};
+
+export function BlogSwitcher({ blogs }: BlogSwitcherProps) {
   const { isMobile } = useSidebar();
-  const [activeBlog, setActiveBlog] = React.useState(blogs[0]);
+  const [activeBlog, setActiveBlog] = useState(blogs ? blogs[0] : null);
+
+  useEffect(() => {
+    if (!blogs) setActiveBlog(null);
+    else setActiveBlog(blogs[0]);
+  }, [blogs]);
 
   if (!activeBlog) {
-    return null;
+    return <>No Blogs</>;
   }
 
   return (

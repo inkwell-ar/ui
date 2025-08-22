@@ -14,6 +14,7 @@ export const ALL_PERMISSIONS = [
 export const REQUIRED_PERMISSIONS = [
   "ACCESS_ADDRESS",
   "ACCESS_PUBLIC_KEY",
+  "ACCESS_ALL_ADDRESSES",
   "SIGN_TRANSACTION",
   "ACCESS_ARWEAVE_CONFIG",
   "DISPATCH",
@@ -22,6 +23,7 @@ export const REQUIRED_PERMISSIONS = [
 
 export const THEME_STORAGE_KEY = "inkwell-theme";
 export const ENVIRONMENT_STORAGE_KEY = "wander-connect-environment";
+export const SELECTED_BLOG_STORAGE_KEY = "inkwell-selected-blog";
 
 export const DEFAULT_CLIENT_ID = "FREE_TRIAL";
 

@@ -42,6 +42,7 @@ type WCContextType = {
   wallet?: typeof window.arweaveWallet;
   userDetails: UserDetails;
   backupInfo: BackupInfo;
+  walletAddress: string;
 };
 
 // Helpers
@@ -80,6 +81,7 @@ export const WCContextProvider = ({
   const [backupInfo, setBackupInfo] = useState<BackupInfo>({
     backupsNeeded: 0,
   });
+  const [walletAddress, setWalletAddress] = useState("");
   const { baseURL, baseServerURL } = useEnvContext();
   const { theme } = useThemeContext();
 
@@ -199,9 +201,10 @@ export const WCContextProvider = ({
     }
     if (
       permissions.every((permission) => grantedPermissions.includes(permission))
-    )
+    ) {
       setIsConnected(true);
-    else setIsConnected(false);
+      updateWalletAddress();
+    } else setIsConnected(false);
   }, [grantedPermissions, permissions]);
 
   function connectWallet() {
@@ -224,6 +227,11 @@ export const WCContextProvider = ({
     setGrantedPermissions([]);
   };
 
+  const updateWalletAddress = async () => {
+    const addr = await wallet?.getActiveAddress();
+    setWalletAddress(addr || "");
+  };
+
   return (
     <WCContext.Provider
       value={{
@@ -236,6 +244,7 @@ export const WCContextProvider = ({
         wallet,
         userDetails,
         backupInfo,
+        walletAddress,
       }}
     >
       {children}

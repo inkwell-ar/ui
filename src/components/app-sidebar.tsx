@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useEffect, useState } from "react";
 import {
   AudioWaveform,
   Command,
@@ -12,7 +12,7 @@ import {
 
 import { NavCategory } from "@/components/nav-category";
 import { NavUser } from "@/components/nav-user";
-import { BlogSwitcher } from "@/components/blog-switcher";
+import { BlogSwitcher, type BlogData } from "@/components/blog-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useBlogsContext } from "@/contexts/blogs-context";
 
 // This is sample data.
 const data = {
@@ -79,10 +80,29 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { blogs } = useBlogsContext();
+  const [blogsData, setBlogsData] = useState<BlogData[]>([]);
+
+  useEffect(() => {
+    const newBlogsData = blogs.map((blogPermission) => {
+      return {
+        name: blogPermission.blog_id,
+        logo: Command,
+        description: JSON.stringify(blogPermission.roles),
+      };
+    });
+
+    setBlogsData(newBlogsData);
+  }, [blogs]);
+
+  useEffect(() => {
+    console.log("blogs data changed: ", blogsData);
+  }, [blogsData]);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <BlogSwitcher blogs={data.blogs} />
+        <BlogSwitcher blogs={blogsData} />
       </SidebarHeader>
       <SidebarContent>
         <NavCategory name="Blog" items={data.blog} />
