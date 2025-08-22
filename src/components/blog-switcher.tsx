@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, Command, LoaderCircle, Plus } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -16,29 +16,99 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
+import { useBlogsContext } from "@/contexts/blogs-context";
+import { InkwellBlogSDK, type BlogInfo } from "@inkwell.ar/sdk";
+import { useWCContext } from "@/contexts/wc-context";
 
 export type BlogData = {
+  id: string;
   name: string;
   logo: React.ElementType;
   description: string;
 };
 
-export type BlogSwitcherProps = {
-  blogs: BlogData[];
+const emptyBlogData: BlogData = {
+  id: "No-Blog-Selected",
+  name: "Select a Blog",
+  logo: Command,
+  description: "",
 };
+// export type BlogSwitcherProps = {};
 
-export function BlogSwitcher({ blogs }: BlogSwitcherProps) {
+export function BlogSwitcher() {
   const { isMobile } = useSidebar();
-  const [activeBlog, setActiveBlog] = useState(blogs ? blogs[0] : null);
+  const { isConnected } = useWCContext();
+  const {
+    blogs,
+    isLoading: isLoadingBlogs,
+    selectedBlog,
+    setSelectedBlog,
+  } = useBlogsContext();
+  const [blogsData, setBlogsData] = useState<BlogData[]>([emptyBlogData]);
+  const [activeBlogData, setActiveBlogData] = useState(
+    blogsData ? blogsData[0] : emptyBlogData
+  );
+  const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
 
   useEffect(() => {
-    if (!blogs) setActiveBlog(null);
-    else setActiveBlog(blogs[0]);
+    const updateBlogsData = async () => {
+      setIsLoadingBlogDetails(true);
+      const newBlogsData: BlogData[] = blogs.map((blogPermission) => {
+        return {
+          id: blogPermission.blog_id,
+          name: blogPermission.blog_id,
+          logo: Command,
+          description: JSON.stringify(blogPermission.roles),
+        };
+      });
+      for (let i = 0; i < blogs.length; i++) {
+        const blogPermission = blogs[i];
+        const blog = new InkwellBlogSDK({ processId: blogPermission.blog_id });
+        const blogInfo = await blog.getInfo();
+        console.log("Blog info fetched: ", blogInfo);
+
+        if (!blogInfo.success) {
+          console.log(
+            "Failed to load details for blog ",
+            blogPermission.blog_id
+          );
+          continue;
+        }
+        const blogDetails = blogInfo.data as BlogInfo;
+        newBlogsData[i].name =
+          blogDetails.blogTitle || blogDetails.details.title;
+        newBlogsData[i].description =
+          blogDetails.blogDescription || blogDetails.details.description;
+        // newBlogsData[i].logo = !blogDetails.blogLogo ? (
+        //   Command
+        // ) : (
+        //   <img src={blogDetails.blogLogo} alt="Logo" className="h-8 w-8" />
+        // );
+      }
+      setBlogsData([...blogsData, ...newBlogsData]);
+      setIsLoadingBlogDetails(false);
+    };
+    updateBlogsData();
   }, [blogs]);
 
-  if (!activeBlog) {
-    return <>No Blogs</>;
-  }
+  useEffect(() => {
+    console.log("blogs data changed: ", blogsData);
+    if (!blogsData) {
+      setBlogsData([emptyBlogData]);
+    } else {
+      let newActiveBlogData = blogsData[0];
+      for (let i = 0; i < blogsData.length; i++) {
+        const blogData = blogsData[i];
+        if (blogData.id === selectedBlog) newActiveBlogData = blogData;
+      }
+      setActiveBlogData(newActiveBlogData);
+    }
+  }, [blogsData, selectedBlog]);
+
+  const selectActiveBlog = (blog: BlogData) => {
+    setActiveBlogData(blog);
+    setSelectedBlog(blog.id);
+  };
 
   return (
     <SidebarMenu>
@@ -48,14 +118,22 @@ export function BlogSwitcher({ blogs }: BlogSwitcherProps) {
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              disabled={!isConnected}
             >
-              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <activeBlog.logo className="size-4" />
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex shrink-0 aspect-square size-8 items-center justify-center rounded-lg">
+                {activeBlogData && <activeBlogData.logo className="size-4" />}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{activeBlog.name}</span>
+                <div className="flex items-center justify-between">
+                  <span className="truncate font-medium">
+                    {activeBlogData?.name}
+                  </span>
+                  {(isLoadingBlogs || isLoadingBlogDetails) && (
+                    <LoaderCircle className="animate-spin" />
+                  )}
+                </div>
                 <span className="truncate text-xs">
-                  {activeBlog.description}
+                  {activeBlogData?.description}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -70,17 +148,18 @@ export function BlogSwitcher({ blogs }: BlogSwitcherProps) {
             <DropdownMenuLabel className="text-muted-foreground text-xs">
               Blogs
             </DropdownMenuLabel>
-            {blogs.map((blog, index) => (
+
+            {blogsData.map((blog, index) => (
               <DropdownMenuItem
                 key={blog.name}
-                onClick={() => setActiveBlog(blog)}
+                onClick={() => selectActiveBlog(blog)}
                 className="gap-2 p-2"
               >
-                <div className="flex size-6 items-center justify-center rounded-md border">
+                <div className="flex shrink-0 size-6 items-center justify-center rounded-md border">
                   <blog.logo className="size-3.5 shrink-0" />
                 </div>
-                {blog.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                <span className="truncate">{blog.name}</span>
+                <DropdownMenuShortcut>⌘{index}</DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

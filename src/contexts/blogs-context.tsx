@@ -1,4 +1,4 @@
-// import { SELECTED_BLOG_STORAGE_KEY } from "@/lib/constants";
+import { SELECTED_BLOG_STORAGE_KEY } from "@/lib/constants";
 import {
   createContext,
   useContext,
@@ -8,12 +8,12 @@ import {
 } from "react";
 import { useWCContext } from "./wc-context";
 import { BlogRegistrySDK, type BlogPermission } from "@inkwell.ar/sdk";
-// import { registry } from "@/lib/utils";
 
 type BlogsContextType = {
+  isLoading: boolean;
   blogs: BlogPermission[];
-  //   setSelectedBlog: React.Dispatch<React.SetStateAction<string>>;
-  //   selectedBlog: string;
+  setSelectedBlog: React.Dispatch<React.SetStateAction<string>>;
+  selectedBlog: string;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -28,22 +28,30 @@ export const BlogsContextProvider = ({
 }: BlogsContextProviderProps) => {
   const { walletAddress = "" } = useWCContext();
   const [blogs, setBlogs] = useState<BlogPermission[]>([]);
-  //   const [selectedBlog, setSelectedBlog] = useState<string>("");
+  const [selectedBlog, setSelectedBlog] = useState<string>(() => {
+    // Get Selected Blog from localStorage
+    const savedSelectedBlog = localStorage.getItem(
+      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
+    );
+    return savedSelectedBlog || "";
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  //   // Effect to update localStorage
-  //   useEffect(() => {
-  //     // Save to localStorage
-  //     localStorage.setItem(
-  //       `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`,
-  //       selectedBlog
-  //     );
-  //   }, [selectedBlog, walletAddress]);
+  // Effect to update localStorage
+  useEffect(() => {
+    // Save to localStorage
+    localStorage.setItem(
+      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`,
+      selectedBlog
+    );
+  }, [selectedBlog]);
 
   // Effect to update blogs & selectedBlog based on wallet selected
   useEffect(() => {
+    setIsLoading(true);
     if (!walletAddress) {
-      //   setSelectedBlog("");
       setBlogs([]);
+      setIsLoading(false);
       return;
     }
 
@@ -53,22 +61,24 @@ export const BlogsContextProvider = ({
       const walletBlogs = await registry.getWalletBlogs(walletAddress);
       console.log("Wallet's blogs: ", walletBlogs);
       setBlogs(walletBlogs);
+      setIsLoading(false);
     };
 
-    // Get saved Selected Blog from localStorage
     updateBlogs();
-    // const savedSelectedBlog = localStorage.getItem(
-    //   `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
-    // );
-    // setSelectedBlog(savedSelectedBlog || "");
+    // Get saved Selected Blog from localStorage
+    const savedSelectedBlog = localStorage.getItem(
+      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
+    );
+    setSelectedBlog(savedSelectedBlog || "");
   }, [walletAddress]);
 
   return (
     <BlogsContext.Provider
       value={{
+        isLoading,
         blogs,
-        // selectedBlog,
-        // setSelectedBlog,
+        selectedBlog,
+        setSelectedBlog,
       }}
     >
       {children}
