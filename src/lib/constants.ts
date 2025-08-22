@@ -1,3 +1,5 @@
+import type { BlogData } from "@/contexts/blogs-context";
+
 export const ALL_PERMISSIONS = [
   "ACCESS_ADDRESS",
   "ACCESS_PUBLIC_KEY",
@@ -31,3 +33,10 @@ export const DEFAULT_BASE_URL = "https://connect.wander.app";
 export const DEFAULT_SERVER_BASE_URL = "https://connect-api.wander.app";
 export const DEV_BASE_URL = "https://connect.wander.app";
 export const DEV_SERVER_BASE_URL = "https://connect-api.wander.app";
+
+export const emptyBlogData: BlogData = {
+  id: "No-Blog-Selected",
+  title: "Select a Blog",
+  description: "",
+  logo: "",
+};

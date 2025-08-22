@@ -1,4 +1,10 @@
-import { ChevronsUpDown, Command, LoaderCircle, Plus } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  ChevronsUpDown,
+  Feather,
+  LoaderCircle,
+} from "lucide-react";
 
 import {
   DropdownMenu,
@@ -6,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
+  //   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -16,96 +22,35 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
-import { useBlogsContext } from "@/contexts/blogs-context";
-import { InkwellBlogSDK, type BlogInfo } from "@inkwell.ar/sdk";
+import { useBlogsContext, type BlogData } from "@/contexts/blogs-context";
 import { useWCContext } from "@/contexts/wc-context";
-
-export type BlogData = {
-  id: string;
-  name: string;
-  logo: React.ElementType;
-  description: string;
-};
-
-const emptyBlogData: BlogData = {
-  id: "No-Blog-Selected",
-  name: "Select a Blog",
-  logo: Command,
-  description: "",
-};
-// export type BlogSwitcherProps = {};
+import { emptyBlogData } from "@/lib/constants";
 
 export function BlogSwitcher() {
   const { isMobile } = useSidebar();
   const { isConnected, isAuthenticated } = useWCContext();
   const {
-    blogs,
+    blogsData,
     isLoading: isLoadingBlogs,
+    isLoadingBlogDetails,
     selectedBlog,
     setSelectedBlog,
   } = useBlogsContext();
-  const [blogsData, setBlogsData] = useState<BlogData[]>([emptyBlogData]);
-  const [activeBlogData, setActiveBlogData] = useState(
-    blogsData ? blogsData[0] : emptyBlogData
-  );
-  const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
-
-  useEffect(() => {
-    if (!isConnected) return;
-
-    const updateBlogsData = async () => {
-      setIsLoadingBlogDetails(true);
-      const newBlogsData: BlogData[] = blogs.map((blogPermission) => {
-        return {
-          id: blogPermission.blog_id,
-          name: blogPermission.blog_id,
-          logo: Command,
-          description: JSON.stringify(blogPermission.roles),
-        };
-      });
-      for (let i = 0; i < blogs.length; i++) {
-        const blogPermission = blogs[i];
-        const blog = new InkwellBlogSDK({ processId: blogPermission.blog_id });
-        const blogInfo = await blog.getInfo();
-        console.log("Blog info fetched: ", blogInfo);
-
-        if (!blogInfo.success) {
-          console.log(
-            "Failed to load details for blog ",
-            blogPermission.blog_id
-          );
-          continue;
-        }
-        const blogDetails = blogInfo.data as BlogInfo;
-        newBlogsData[i].name =
-          blogDetails.blogTitle || blogDetails.details.title;
-        newBlogsData[i].description =
-          blogDetails.blogDescription || blogDetails.details.description;
-        // newBlogsData[i].logo = !blogDetails.blogLogo ? (
-        //   Command
-        // ) : (
-        //   <img src={blogDetails.blogLogo} alt="Logo" className="h-8 w-8" />
-        // );
-      }
-      setBlogsData([emptyBlogData, ...newBlogsData]);
-      setIsLoadingBlogDetails(false);
-    };
-
-    updateBlogsData();
-  }, [blogs, isConnected]);
+  const [activeBlogData, setActiveBlogData] = useState(emptyBlogData);
 
   useEffect(() => {
     console.log("blogs data changed: ", blogsData);
-    if (!blogsData) {
-      setBlogsData([emptyBlogData]);
-    } else {
-      let newActiveBlogData = blogsData[0];
-      for (let i = 0; i < blogsData.length; i++) {
-        const blogData = blogsData[i];
-        if (blogData.id === selectedBlog) newActiveBlogData = blogData;
-      }
-      setActiveBlogData(newActiveBlogData);
+    if (!blogsData || selectedBlog === emptyBlogData.id) {
+      setActiveBlogData(emptyBlogData);
+      return;
     }
+
+    let newActiveBlogData = blogsData[0];
+    for (let i = 0; i < blogsData.length; i++) {
+      const blogData = blogsData[i];
+      if (blogData.id === selectedBlog) newActiveBlogData = blogData;
+    }
+    setActiveBlogData(newActiveBlogData);
   }, [blogsData, selectedBlog]);
 
   const selectActiveBlog = (blog: BlogData) => {
@@ -124,19 +69,24 @@ export function BlogSwitcher() {
               disabled={!isConnected || !isAuthenticated}
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex shrink-0 aspect-square size-8 items-center justify-center rounded-lg">
-                {activeBlogData && <activeBlogData.logo className="size-4" />}
+                {/* {activeBlogData && <activeBlogData.logo className="size-4" />} */}
+                {activeBlogData && activeBlogData.id !== emptyBlogData.id ? (
+                  <BookOpen />
+                ) : (
+                  <ChevronDown />
+                )}
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <div className="flex items-center justify-between">
                   <span className="truncate font-medium">
-                    {activeBlogData?.name}
+                    {activeBlogData?.title || emptyBlogData.title}
                   </span>
                   {(isLoadingBlogs || isLoadingBlogDetails) && (
                     <LoaderCircle className="animate-spin" />
                   )}
                 </div>
                 <span className="truncate text-xs">
-                  {activeBlogData?.description}
+                  {activeBlogData?.description || emptyBlogData.description}
                 </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
@@ -152,23 +102,33 @@ export function BlogSwitcher() {
               Blogs
             </DropdownMenuLabel>
 
-            {blogsData.map((blog, index) => (
+            <DropdownMenuItem
+              key={emptyBlogData.id}
+              onClick={() => selectActiveBlog(emptyBlogData)}
+              className="gap-2 p-2"
+            >
+              <div className="flex shrink-0 size-6 items-center justify-center rounded-md border">
+                <ChevronDown />
+              </div>
+              <span className="truncate">{emptyBlogData.title}</span>
+            </DropdownMenuItem>
+
+            {blogsData.map((blog) => (
               <DropdownMenuItem
-                key={blog.name}
+                key={blog.id}
                 onClick={() => selectActiveBlog(blog)}
                 className="gap-2 p-2"
               >
                 <div className="flex shrink-0 size-6 items-center justify-center rounded-md border">
-                  <blog.logo className="size-3.5 shrink-0" />
+                  <BookOpen />
                 </div>
-                <span className="truncate">{blog.name}</span>
-                <DropdownMenuShortcut>⌘{index}</DropdownMenuShortcut>
+                <span className="truncate">{blog.title}</span>
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <Plus className="size-4" />
+                <Feather className="size-4" />
               </div>
               <div className="text-muted-foreground font-medium">Add blog</div>
             </DropdownMenuItem>

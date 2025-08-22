@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@7i7o/arsvgies": "^1.1.0",
-    "@inkwell.ar/sdk": "^0.0.5",
+    "@inkwell.ar/sdk": "^0.0.6",
     "@permaweb/aoconnect": "^0.0.89",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-collapsible": "^1.1.11",

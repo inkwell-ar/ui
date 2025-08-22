@@ -32,15 +32,19 @@ import { toast } from "sonner";
 import { useThemeContext } from "@/contexts/theme-context";
 import { useWCContext } from "@/contexts/wc-context";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+type UserData = {
+  name: string;
+  email: string;
+  avatar: string;
+};
+
+const emptyUser: UserData = {
+  name: "",
+  email: "",
+  avatar: "",
+};
+
+export function NavUser() {
   const { isMobile } = useSidebar();
   const { theme, toggleTheme } = useThemeContext();
   const {
@@ -53,11 +57,11 @@ export function NavUser({
     wander,
   } = useWCContext();
   // useWanderConnectContext();
-  const [userData, setUserData] = useState(user);
+  const [userData, setUserData] = useState(emptyUser);
 
   useEffect(() => {
     if (!userDetails) {
-      setUserData(user);
+      setUserData(emptyUser);
       return;
     }
 
@@ -67,7 +71,7 @@ export function NavUser({
       avatar: userDetails.picture,
     });
     console.log(userDetails.picture);
-  }, [userDetails, user]);
+  }, [userDetails]);
 
   if (!isConnected || !isAuthenticated)
     return (
