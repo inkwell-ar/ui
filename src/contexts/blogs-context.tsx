@@ -3,7 +3,9 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
+  useCallback,
   type PropsWithChildren,
 } from "react";
 import { useWCContext } from "./wc-context";
@@ -43,21 +45,20 @@ export const BlogsContextProvider = ({
   children,
 }: BlogsContextProviderProps) => {
   const { walletAddress = "", isConnected, isAuthenticated } = useWCContext();
+
+  // Memoize registry - only recreate if needed
+  const registry = useMemo(() => new BlogRegistrySDK(), []);
+
   const [blogs, setBlogs] = useState<BlogPermission[]>([]);
   const [blogsData, setBlogsData] = useState<BlogData[]>([]);
-  const [selectedBlog, setSelectedBlog] = useState<string>(() => {
-    // Get Selected Blog from localStorage
-    const savedSelectedBlog = localStorage.getItem(
-      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
-    );
-    return savedSelectedBlog || emptyBlogData.id;
-  });
+  const [selectedBlog, setSelectedBlog] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
 
-  const resetState = () => {
+  // Memoize the reset function to prevent unnecessary re-renders
+  const resetState = useCallback(() => {
     setBlogs([]);
     setBlogsData([]);
     setSelectedBlog("");
@@ -65,114 +66,190 @@ export const BlogsContextProvider = ({
     setIsLoadingBlogDetails(false);
     setIsAdmin(false);
     setIsEditor(false);
-  };
+  }, []);
 
-  function updateRoles() {
+  // Memoize role updates
+  const updateRoles = useCallback(() => {
     if (!selectedBlog || selectedBlog === emptyBlogData.id) {
       setIsAdmin(false);
       setIsEditor(false);
       return;
     }
 
-    // update isAdmin and isEditor for the selectedBlog
-    for (let i = 0; i < blogs.length; i++) {
-      const blogPermission = blogs[i];
-      if (blogPermission.blog_id !== selectedBlog) continue;
+    // Find the selected blog permission more efficiently
+    const blogPermission = blogs.find((bp) => bp.blog_id === selectedBlog);
+    if (blogPermission) {
       setIsAdmin(blogPermission.roles.includes("DEFAULT_ADMIN_ROLE"));
       setIsEditor(blogPermission.roles.includes("EDITOR_ROLE"));
-      break;
     }
-  }
+  }, [selectedBlog, blogs]);
 
-  // Effect to update localStorage
+  // Initialize selectedBlog from localStorage (only once)
   useEffect(() => {
-    // Save to localStorage
-    localStorage.setItem(
-      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`,
-      selectedBlog
-    );
+    if (walletAddress) {
+      const savedSelectedBlog = localStorage.getItem(
+        `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
+      );
+      setSelectedBlog(savedSelectedBlog || emptyBlogData.id);
+    }
+  }, [walletAddress]);
 
+  // Save selectedBlog to localStorage and update roles
+  useEffect(() => {
+    if (walletAddress && selectedBlog) {
+      localStorage.setItem(
+        `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`,
+        selectedBlog
+      );
+    }
     updateRoles();
-  }, [selectedBlog]);
+  }, [selectedBlog, walletAddress, updateRoles]);
 
-  // Effect to update blogs & selectedBlog based on wallet selected
+  // Fetch blogs when wallet changes
   useEffect(() => {
-    setIsLoading(true);
-    // Reset state if disconnected
     if (!walletAddress || !isConnected || !isAuthenticated) {
       resetState();
       return;
     }
 
+    let isMounted = true; // Prevent state updates if component unmounts
+
     const updateBlogs = async () => {
-      console.log("Fetching all blogs for wallet ", walletAddress);
-      const registry = new BlogRegistrySDK();
-      const walletBlogs = await registry.getWalletBlogs(walletAddress);
-      console.log("Fetched blogs: ", walletBlogs);
-      setBlogs(walletBlogs);
-      setIsLoading(false);
+      setIsLoading(true);
+      try {
+        console.log("Fetching all blogs for wallet ", walletAddress);
+        const walletBlogs = await registry.getWalletBlogs(walletAddress);
+        console.log("Fetched blogs: ", walletBlogs);
+
+        if (isMounted) {
+          setBlogs(walletBlogs);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch blogs:", error);
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
 
     updateBlogs();
-    // Get saved Selected Blog from localStorage
-    const savedSelectedBlog = localStorage.getItem(
-      `${SELECTED_BLOG_STORAGE_KEY}-${walletAddress}`
-    );
-    setSelectedBlog(savedSelectedBlog || emptyBlogData.id);
-  }, [walletAddress, isConnected, isAuthenticated]);
 
+    return () => {
+      isMounted = false;
+    };
+  }, [walletAddress, isConnected, isAuthenticated, registry, resetState]);
+
+  // Memoize blog data processing - only recalculate when blogs change
+  const processedBlogsData = useMemo(() => {
+    return blogs.map((blogPermission) => ({
+      id: blogPermission.blog_id,
+      title: blogPermission.blog_id,
+      logo: "",
+      description: JSON.stringify(blogPermission.roles),
+    }));
+  }, [blogs]);
+
+  // Fetch detailed blog information
   useEffect(() => {
+    if (blogs.length === 0) {
+      setBlogsData([]);
+      return;
+    }
+
+    let isMounted = true;
+
     const updateBlogsData = async () => {
       setIsLoadingBlogDetails(true);
-      const newBlogsData: BlogData[] = blogs.map((blogPermission) => {
-        return {
-          id: blogPermission.blog_id,
-          title: blogPermission.blog_id,
-          logo: "",
-          description: JSON.stringify(blogPermission.roles),
-        };
-      });
-      for (let i = 0; i < blogs.length; i++) {
-        const blogPermission = blogs[i];
-        const blog = new InkwellBlogSDK({ processId: blogPermission.blog_id });
-        const blogInfo = await blog.getInfo();
-        console.log("Blog info fetched: ", blogInfo);
+      const newBlogsData = [...processedBlogsData]; // Start with processed data
 
-        if (!blogInfo.success) {
-          console.log(
-            "Failed to load details for blog ",
-            blogPermission.blog_id
-          );
-          continue;
+      try {
+        // Use Promise.allSettled for error handling and parallel processing
+        const blogInfoPromises = blogs.map(async (blogPermission, index) => {
+          try {
+            const blog = new InkwellBlogSDK({
+              processId: blogPermission.blog_id,
+            });
+            const blogInfo = await blog.getInfo();
+
+            if (blogInfo.success && isMounted) {
+              const blogDetails = blogInfo.data as BlogInfo;
+              return {
+                index,
+                title: blogDetails.blogTitle || blogDetails.details.title,
+                description:
+                  blogDetails.blogDescription ||
+                  blogDetails.details.description,
+                logo: blogDetails.blogLogo || blogDetails.details.logo,
+              };
+            }
+          } catch (error) {
+            console.log(
+              `Failed to load details for blog ${blogPermission.blog_id}:`,
+              error
+            );
+          }
+          return null;
+        });
+
+        const results = await Promise.allSettled(blogInfoPromises);
+
+        if (isMounted) {
+          results.forEach((result) => {
+            if (result.status === "fulfilled" && result.value) {
+              const { index, title, description, logo } = result.value;
+              newBlogsData[index] = {
+                ...newBlogsData[index],
+                title,
+                description,
+                logo,
+              };
+            }
+          });
+
+          setBlogsData(newBlogsData);
+          setIsLoadingBlogDetails(false);
         }
-        const blogDetails = blogInfo.data as BlogInfo;
-        newBlogsData[i].title =
-          blogDetails.blogTitle || blogDetails.details.title;
-        newBlogsData[i].description =
-          blogDetails.blogDescription || blogDetails.details.description;
-        newBlogsData[i].logo = blogDetails.blogLogo || blogDetails.details.logo;
+      } catch (error) {
+        console.error("Error updating blogs data:", error);
+        if (isMounted) {
+          setIsLoadingBlogDetails(false);
+        }
       }
-      setBlogsData(newBlogsData);
-      setIsLoadingBlogDetails(false);
     };
 
     updateBlogsData();
-    updateRoles();
-  }, [blogs]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [blogs, processedBlogsData]);
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      isLoading,
+      isLoadingBlogDetails,
+      blogs,
+      blogsData,
+      selectedBlog,
+      setSelectedBlog,
+      isAdmin,
+      isEditor,
+    }),
+    [
+      isLoading,
+      isLoadingBlogDetails,
+      blogs,
+      blogsData,
+      selectedBlog,
+      isAdmin,
+      isEditor,
+    ]
+  );
 
   return (
-    <BlogsContext.Provider
-      value={{
-        isLoading,
-        isLoadingBlogDetails,
-        blogs,
-        blogsData,
-        selectedBlog,
-        setSelectedBlog,
-        isAdmin,
-        isEditor,
-      }}
-    >
+    <BlogsContext.Provider value={contextValue}>
       {children}
     </BlogsContext.Provider>
   );
