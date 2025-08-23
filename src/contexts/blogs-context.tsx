@@ -1,4 +1,8 @@
-import { emptyBlogData, SELECTED_BLOG_STORAGE_KEY } from "@/lib/constants";
+import {
+  CUSTOM_CU_URL,
+  emptyBlogData,
+  SELECTED_BLOG_STORAGE_KEY,
+} from "@/lib/constants";
 import {
   createContext,
   useContext,
@@ -15,6 +19,7 @@ import {
   type BlogInfo,
   type BlogPermission,
 } from "@inkwell.ar/sdk";
+import { connect } from "@permaweb/aoconnect";
 
 export type BlogData = {
   id: string;
@@ -23,11 +28,18 @@ export type BlogData = {
   logo: string;
 };
 
+export type BlogWallet = {
+  wallet: string;
+  roles: string[];
+};
+
 type BlogsContextType = {
   isLoading: boolean;
   isLoadingBlogDetails: boolean;
+  isLoadingBlogWallets: boolean;
   blogs: BlogPermission[];
   blogsData: BlogData[];
+  blogWallets: BlogWallet[];
   setSelectedBlog: React.Dispatch<React.SetStateAction<string>>;
   selectedBlog: string;
   isAdmin: boolean;
@@ -46,24 +58,36 @@ export const BlogsContextProvider = ({
 }: BlogsContextProviderProps) => {
   const { walletAddress = "", isConnected, isAuthenticated } = useWCContext();
 
+  // Memoize aoconnect - only create if needed, for custom CU
+  const aoconnect = useMemo(() => {
+    if (!CUSTOM_CU_URL) return null;
+    console.log("Using CUSTOM CU URL from .env");
+
+    return connect({ MODE: "legacy", CU_URL: CUSTOM_CU_URL || undefined });
+  }, []);
+
   // Memoize registry - only recreate if needed
-  const registry = useMemo(() => new BlogRegistrySDK(), []);
+  const registry = useMemo(() => new BlogRegistrySDK(aoconnect), [aoconnect]);
 
   const [blogs, setBlogs] = useState<BlogPermission[]>([]);
   const [blogsData, setBlogsData] = useState<BlogData[]>([]);
+  const [blogWallets, setBlogWallets] = useState<BlogWallet[]>([]);
   const [selectedBlog, setSelectedBlog] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
+  const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
 
   // Memoize the reset function to prevent unnecessary re-renders
   const resetState = useCallback(() => {
     setBlogs([]);
     setBlogsData([]);
+    setBlogWallets([]);
     setSelectedBlog("");
     setIsLoading(false);
     setIsLoadingBlogDetails(false);
+    setIsLoadingBlogWallets(false);
     setIsAdmin(false);
     setIsEditor(false);
   }, []);
@@ -84,6 +108,27 @@ export const BlogsContextProvider = ({
     }
   }, [selectedBlog, blogs]);
 
+  // Fetch blog wallets for the selected blog
+  const updateBlogWallets = useCallback(async () => {
+    if (!selectedBlog || selectedBlog === emptyBlogData.id) {
+      setBlogWallets([]);
+      return;
+    }
+
+    setIsLoadingBlogWallets(true);
+    try {
+      console.log("Fetching blog wallets for blog:", selectedBlog);
+      const wallets = await registry.getBlogWallets(selectedBlog);
+      console.log("Fetched blog wallets:", wallets);
+      setBlogWallets(wallets || []);
+    } catch (error) {
+      console.error("Failed to fetch blog wallets:", error);
+      setBlogWallets([]);
+    } finally {
+      setIsLoadingBlogWallets(false);
+    }
+  }, [selectedBlog, registry]);
+
   // Initialize selectedBlog from localStorage (only once)
   useEffect(() => {
     if (walletAddress) {
@@ -103,7 +148,8 @@ export const BlogsContextProvider = ({
       );
     }
     updateRoles();
-  }, [selectedBlog, walletAddress, updateRoles]);
+    updateBlogWallets();
+  }, [selectedBlog, walletAddress, updateRoles, updateBlogWallets]);
 
   // Fetch blogs when wallet changes
   useEffect(() => {
@@ -164,10 +210,11 @@ export const BlogsContextProvider = ({
       const newBlogsData = [...processedBlogsData]; // Start with processed data
 
       try {
-        // Use Promise.allSettled for error handling and parallel processing
+        // Use Promise.allSettled for better error handling and parallel processing
         const blogInfoPromises = blogs.map(async (blogPermission, index) => {
           try {
             const blog = new InkwellBlogSDK({
+              aoconnect: aoconnect,
               processId: blogPermission.blog_id,
             });
             const blogInfo = await blog.getInfo();
@@ -230,8 +277,10 @@ export const BlogsContextProvider = ({
     () => ({
       isLoading,
       isLoadingBlogDetails,
+      isLoadingBlogWallets,
       blogs,
       blogsData,
+      blogWallets,
       selectedBlog,
       setSelectedBlog,
       isAdmin,
@@ -240,8 +289,10 @@ export const BlogsContextProvider = ({
     [
       isLoading,
       isLoadingBlogDetails,
+      isLoadingBlogWallets,
       blogs,
       blogsData,
+      blogWallets,
       selectedBlog,
       isAdmin,
       isEditor,
