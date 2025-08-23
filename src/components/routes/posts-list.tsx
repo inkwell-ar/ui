@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+// import { useParams } from "react-router-dom";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -8,7 +8,7 @@ import PostList from "../post-list";
 import { Outlet } from "react-router-dom";
 
 export default function PostsList() {
-  const { blogId } = useParams();
+  // const { blogId } = useParams();
   
   return (
     <ResizablePanelGroup direction="horizontal">
