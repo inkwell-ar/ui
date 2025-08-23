@@ -40,3 +40,5 @@ export const emptyBlogData: BlogData = {
   description: "",
   logo: "",
 };
+
+export const CUSTOM_CU_URL = import.meta.env.VITE_CUSTOM_CU_URL || "";
