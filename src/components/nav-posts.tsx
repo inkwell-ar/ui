@@ -7,12 +7,12 @@ const categoryName = "Posts";
 const categoryItems = [
   {
     name: "All Posts",
-    route: "#",
+    route: "/posts/:blogId",
     icon: List,
   },
   {
     name: "Create New Post",
-    route: "#",
+    route: "/posts/:blogId/new",
     icon: Feather,
   },
 ];

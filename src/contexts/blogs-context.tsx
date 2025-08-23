@@ -270,7 +270,7 @@ export const BlogsContextProvider = ({
     return () => {
       isMounted = false;
     };
-  }, [blogs, processedBlogsData]);
+  }, [blogs, processedBlogsData, aoconnect]);
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(

@@ -1,4 +1,5 @@
 import { MoreHorizontal, type LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import {
   SidebarGroup,
@@ -21,19 +22,22 @@ export function NavCategory({
     icon: LucideIcon;
   }[];
 }) {
-
   return (
     <SidebarGroup className="group-data-[collapsible=icon]">
       <SidebarGroupLabel>{name}</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton tooltip={item.name}>
-              <item.icon />
-              <span>{item.name}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        ))}
+        {items.map((item) => {
+          return (
+            <SidebarMenuItem key={item.name}>
+              <SidebarMenuButton tooltip={item.name} asChild>
+                <Link to={item.route}>
+                  <item.icon />
+                  <span>{item.name}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          );
+        })}
         {showMore && (
           <SidebarMenuItem>
             <SidebarMenuButton className="text-sidebar-foreground/70">

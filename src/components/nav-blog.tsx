@@ -8,7 +8,7 @@ const categoryName = "Blog";
 const categoryItems = [
   {
     name: "Blog Details",
-    route: "#",
+    route: "/blog/:blogId/info",
     icon: Settings2,
   },
 ];
@@ -17,6 +17,11 @@ export function NavBlog() {
   const { selectedBlog } = useBlogsContext();
 
   if (!selectedBlog || selectedBlog === emptyBlogData.id) return null;
+
+  categoryItems[0].route = categoryItems[0].route.replace(
+    ":blogId",
+    selectedBlog || ""
+  );
 
   return <NavCategory name={categoryName} items={categoryItems} />;
 }

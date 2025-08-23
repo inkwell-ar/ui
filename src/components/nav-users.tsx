@@ -7,12 +7,12 @@ const categoryName = "Users";
 const categoryItems = [
   {
     name: "All Users",
-    route: "#",
+    route: "/admin/users",
     icon: Users2,
   },
   {
-    name: "Add User",
-    route: "#",
+    name: "Permissions",
+    route: "/admin/permissions",
     icon: UserPlus2,
   },
 ];
