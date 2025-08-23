@@ -1,5 +1,5 @@
 import {
-  BookOpen,
+  SquarePen,
   ChevronDown,
   ChevronsUpDown,
   Feather,
@@ -71,7 +71,7 @@ export function BlogSwitcher() {
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex shrink-0 aspect-square size-8 items-center justify-center rounded-lg">
                 {/* {activeBlogData && <activeBlogData.logo className="size-4" />} */}
                 {activeBlogData && activeBlogData.id !== emptyBlogData.id ? (
-                  <BookOpen />
+                  <SquarePen />
                 ) : (
                   <ChevronDown />
                 )}
@@ -120,7 +120,7 @@ export function BlogSwitcher() {
                 className="gap-2 p-2"
               >
                 <div className="flex shrink-0 size-6 items-center justify-center rounded-md border">
-                  <BookOpen />
+                  <SquarePen />
                 </div>
                 <span className="truncate">{blog.title}</span>
               </DropdownMenuItem>

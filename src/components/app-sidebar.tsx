@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { NavBlog } from "./nav-blog";
 import { NavPosts } from "./nav-posts";
 import { NavUsers } from "./nav-users";
+import { NavHeaderLogo } from "./nav-header-logo";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { selectedBlog } = useBlogsContext();
@@ -21,6 +22,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
+        <NavHeaderLogo />
         <BlogSwitcher />
       </SidebarHeader>
       <SidebarContent>
