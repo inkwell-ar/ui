@@ -44,6 +44,11 @@ type BlogsContextType = {
     selectedBlog: string;
     isAdmin: boolean;
     isEditor: boolean;
+    aoconnect: any;
+    updateBlogDetails: (
+        blogId: string,
+        details: { title: string; description: string; logo: string }
+    ) => Promise<{ success: boolean; error?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -78,6 +83,56 @@ export const BlogsContextProvider = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
     const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
+
+    // Function to update blog details
+    const updateBlogDetails = useCallback(
+        async (
+            blogId: string,
+            details: { title: string; description: string; logo: string }
+        ): Promise<{ success: boolean; error?: string }> => {
+            try {
+                // Create blog SDK instance with custom aoconnect if available
+                const blog = new InkwellBlogSDK({
+                    processId: blogId,
+                    aoconnect: aoconnect,
+                });
+
+                // Call setBlogDetails with the form data
+                const result = await blog.setBlogDetails({
+                    data: {
+                        title: details.title,
+                        description: details.description,
+                        logo: details.logo,
+                    },
+                });
+
+                if (result.success) {
+                    // Update local state to reflect changes
+                    setBlogsData((prevData) =>
+                        prevData.map((blog) =>
+                            blog.id === blogId ? { ...blog, ...details } : blog
+                        )
+                    );
+                    return { success: true };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Failed to update blog details',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to update blog details:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [aoconnect]
+    );
 
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
@@ -293,6 +348,8 @@ export const BlogsContextProvider = ({
             setSelectedBlog,
             isAdmin,
             isEditor,
+            aoconnect,
+            updateBlogDetails,
         }),
         [
             isLoading,
@@ -304,6 +361,8 @@ export const BlogsContextProvider = ({
             selectedBlog,
             isAdmin,
             isEditor,
+            aoconnect,
+            updateBlogDetails,
         ]
     );
 

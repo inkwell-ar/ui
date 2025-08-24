@@ -59,6 +59,9 @@ importers:
       '@wanderapp/connect':
         specifier: ^0.1.11
         version: 0.1.11
+      arweave:
+        specifier: ^1.15.7
+        version: 1.15.7
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

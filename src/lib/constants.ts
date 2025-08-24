@@ -1,6 +1,7 @@
 import type { BlogData } from '@/contexts/blogs-context';
+import type { PermissionType } from 'arconnect';
 
-export const ALL_PERMISSIONS = [
+export const ALL_PERMISSIONS: PermissionType[] = [
     'ACCESS_ADDRESS',
     'ACCESS_PUBLIC_KEY',
     'ACCESS_ALL_ADDRESSES',
@@ -13,7 +14,7 @@ export const ALL_PERMISSIONS = [
     'ACCESS_TOKENS',
 ];
 
-export const REQUIRED_PERMISSIONS = [
+export const REQUIRED_PERMISSIONS: PermissionType[] = [
     'ACCESS_ADDRESS',
     'ACCESS_PUBLIC_KEY',
     'ACCESS_ALL_ADDRESSES',

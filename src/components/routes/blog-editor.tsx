@@ -7,13 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { FileUpload } from '@/components/ui/file-upload';
 import { isArweaveTxId, isValidUrl, getImageSource } from '@/lib/utils';
 import { Save, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function BlogEditor() {
     const { blogId } = useParams();
     const navigate = useNavigate();
-    const { blogsData, isLoadingBlogDetails } = useBlogsContext();
+    const { blogsData, isLoadingBlogDetails, updateBlogDetails } =
+        useBlogsContext();
 
     const originalBlogData = useMemo(
         () => blogsData.find((blog: BlogData) => blog.id === blogId),
@@ -55,17 +58,21 @@ export default function BlogEditor() {
     };
 
     const handleSave = async () => {
+        if (!blogId) return;
+
         setIsSaving(true);
         try {
-            // TODO: Implement actual save logic with blog SDK
-            console.log('Saving blog data:', formData);
+            const result = await updateBlogDetails(blogId, formData);
 
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            navigate(`/blog/${blogId}/info`);
+            if (result.success) {
+                toast.success('Blog details updated successfully');
+                navigate(`/blog/${blogId}/info`);
+            } else {
+                toast.error(result.error || 'Failed to update blog details');
+            }
         } catch (error) {
             console.error('Failed to save blog:', error);
+            toast.error('Failed to save blog details');
         } finally {
             setIsSaving(false);
         }
@@ -102,7 +109,10 @@ export default function BlogEditor() {
         );
     }
 
-    const logoSrc = getImageSource(formData.logo);
+    const logoSrc = useMemo(
+        () => getImageSource(formData.logo),
+        [formData.logo]
+    );
 
     return (
         <>
@@ -153,24 +163,14 @@ export default function BlogEditor() {
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="logo">Logo</Label>
-                                    <Input
-                                        id="logo"
-                                        value={formData.logo}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                'logo',
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="Arweave TX ID or URL"
-                                    />
-                                    <p className="text-muted-foreground text-xs">
-                                        Enter an Arweave transaction ID (43
-                                        characters) or a valid URL
-                                    </p>
-                                </div>
+                                <FileUpload
+                                    label="Logo"
+                                    value={formData.logo}
+                                    onChange={(value) =>
+                                        handleInputChange('logo', value)
+                                    }
+                                    showPreview={false}
+                                />
 
                                 <div className="space-y-2">
                                     <Label htmlFor="description">

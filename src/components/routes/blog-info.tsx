@@ -46,7 +46,7 @@ export default function BlogInfo() {
                                 <img
                                     src={logoSrc}
                                     alt={`${blogData.title} logo`}
-                                    className="size-24 rounded-lg object-cover"
+                                    className="size-12 rounded-lg object-cover"
                                     onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                     }}
@@ -56,7 +56,7 @@ export default function BlogInfo() {
                                 <CardTitle className="text-3xl font-bold">
                                     {blogData.title}
                                 </CardTitle>
-                                <p className="text-muted-foreground font-mono text-sm">
+                                <p className="text-muted-foreground font-mono text-sm break-all text-ellipsis">
                                     {blogData.id}
                                 </p>
                             </div>
@@ -96,7 +96,7 @@ export default function BlogInfo() {
                                               ? 'External URL'
                                               : 'Invalid'}
                                     </p>
-                                    <p className="font-mono break-all">
+                                    <p className="font-mono break-all text-ellipsis">
                                         <span className="font-medium">
                                             Source:
                                         </span>{' '}
