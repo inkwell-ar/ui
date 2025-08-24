@@ -56,9 +56,12 @@ export default function BlogInfo() {
                                 <CardTitle className="text-3xl font-bold">
                                     {blogData.title}
                                 </CardTitle>
-                                <p className="text-muted-foreground font-mono text-sm break-all text-ellipsis">
+                                <Button
+                                    variant="link"
+                                    className="text-muted-foreground truncate font-mono text-sm break-all text-ellipsis"
+                                >
                                     {blogData.id}
-                                </p>
+                                </Button>
                             </div>
                         </div>
                         <Button variant="outline" size="sm" asChild>

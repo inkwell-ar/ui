@@ -131,7 +131,14 @@ export default function UsersManagement() {
                                 {blogWallets.map((blogWallet) => (
                                     <TableRow key={blogWallet.wallet}>
                                         <TableCell className="font-mono">
-                                            {formatWallet(blogWallet.wallet)}
+                                            <a
+                                                target="_blank"
+                                                href={`https://ao.link/#/entity/${blogWallet.wallet}`}
+                                            >
+                                                {formatWallet(
+                                                    blogWallet.wallet
+                                                )}
+                                            </a>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             {hasRole(

@@ -15,6 +15,7 @@ interface FileUploadProps {
     allowedTypes?: string[];
     allowedExtensions?: string[];
     showPreview?: boolean;
+    showTxLinks?: boolean;
     className?: string;
 }
 
@@ -33,6 +34,7 @@ export function FileUpload({
     ],
     allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
     showPreview = true,
+    showTxLinks = true,
     className = '',
 }: FileUploadProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +142,28 @@ export function FileUpload({
                     </div>
                 )}
             </div>
+
+            {/* Show Tx Links */}
+            {showTxLinks && value && (
+                <div className="text-muted-foreground text-xs">
+                    {'View '}
+                    <a
+                        target="_blank"
+                        href={`https://arweave.net/${value}`}
+                        className="underline hover:cursor-pointer"
+                    >
+                        File in Arweave
+                    </a>
+                    {' or '}
+                    <a
+                        target="_blank"
+                        href={`https://viewblock.io/arweave/tx/${value}`}
+                        className="underline hover:cursor-pointer"
+                    >
+                        Tx on Viewblock
+                    </a>
+                </div>
+            )}
 
             {/* Preview */}
             {showPreview && imageSource && (

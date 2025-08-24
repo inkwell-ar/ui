@@ -148,6 +148,7 @@ export default function BlogEditor() {
                     <CardContent className="space-y-6">
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-4">
+                                {/* Title */}
                                 <div className="space-y-2">
                                     <Label htmlFor="title">Title</Label>
                                     <Input
@@ -163,15 +164,7 @@ export default function BlogEditor() {
                                     />
                                 </div>
 
-                                <FileUpload
-                                    label="Logo"
-                                    value={formData.logo}
-                                    onChange={(value) =>
-                                        handleInputChange('logo', value)
-                                    }
-                                    showPreview={false}
-                                />
-
+                                {/* Description */}
                                 <div className="space-y-2">
                                     <Label htmlFor="description">
                                         Description
@@ -192,35 +185,17 @@ export default function BlogEditor() {
                             </div>
 
                             <div className="space-y-4">
-                                <div>
-                                    <Label>Preview</Label>
-                                    <div className="mt-2 rounded-lg border p-4">
-                                        <div className="flex items-start gap-4">
-                                            {logoSrc && (
-                                                <img
-                                                    src={logoSrc}
-                                                    alt="Logo preview"
-                                                    className="size-16 rounded-lg object-cover"
-                                                    onError={(e) => {
-                                                        e.currentTarget.style.display =
-                                                            'none';
-                                                    }}
-                                                />
-                                            )}
-                                            <div className="flex-1 space-y-1">
-                                                <h3 className="font-semibold">
-                                                    {formData.title ||
-                                                        'Untitled Blog'}
-                                                </h3>
-                                                <p className="text-muted-foreground text-sm">
-                                                    {formData.description ||
-                                                        'No description'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                {/* Logo Upload */}
+                                <FileUpload
+                                    label="Logo"
+                                    value={formData.logo}
+                                    onChange={(value) =>
+                                        handleInputChange('logo', value)
+                                    }
+                                    showPreview={false}
+                                />
 
+                                {/* Logo Validation */}
                                 {formData.logo && (
                                     <div>
                                         <Label>Logo Validation</Label>
@@ -247,6 +222,35 @@ export default function BlogEditor() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                            {/* Blog Preview */}
+                            <div className="md:col-span-2">
+                                <Label>Preview</Label>
+                                <div className="mt-2 rounded-lg border p-4">
+                                    <div className="flex items-start gap-4">
+                                        {logoSrc && (
+                                            <img
+                                                src={logoSrc}
+                                                alt="Logo preview"
+                                                className="size-16 rounded-lg object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display =
+                                                        'none';
+                                                }}
+                                            />
+                                        )}
+                                        <div className="flex-1 space-y-1">
+                                            <h3 className="font-semibold">
+                                                {formData.title ||
+                                                    'Untitled Blog'}
+                                            </h3>
+                                            <p className="text-muted-foreground text-sm">
+                                                {formData.description ||
+                                                    'No description'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </CardContent>
