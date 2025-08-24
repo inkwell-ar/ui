@@ -5,6 +5,7 @@ This document explains the new centralized routes configuration system that enab
 ## Overview
 
 The routes configuration system provides:
+
 - Centralized route definitions with metadata
 - Automatic breadcrumb generation
 - Consistent navigation structure
@@ -13,7 +14,9 @@ The routes configuration system provides:
 ## Files
 
 ### `/src/lib/routes-config.tsx`
+
 Central configuration file containing all route definitions with metadata including:
+
 - Route paths
 - React components
 - Human-readable titles
@@ -22,24 +25,26 @@ Central configuration file containing all route definitions with metadata includ
 - Parent-child relationships
 
 ### `/src/components/smart-breadcrumb.tsx`
+
 Intelligent breadcrumb component that automatically generates breadcrumbs based on the current route.
 
 ### `/src/components/app-routes.tsx`
+
 Updated to use the routes configuration object instead of hardcoded route definitions.
 
 ## Route Configuration Structure
 
 ```typescript
 interface RouteConfig {
-  path: string;           // URL path pattern
-  element: ReactElement;  // React component to render
-  title: string;          // Page title
-  breadcrumbTitle?: string; // Optional breadcrumb title (defaults to title)
-  icon?: any;            // Optional icon component
-  parent?: string;       // Optional parent route key for breadcrumb hierarchy
-  params?: string[];     // URL parameters
-  index?: boolean;       // Whether this is an index route
-  hideFromBreadcrumb?: boolean; // Hide from breadcrumb trail
+    path: string; // URL path pattern
+    element: ReactElement; // React component to render
+    title: string; // Page title
+    breadcrumbTitle?: string; // Optional breadcrumb title (defaults to title)
+    icon?: any; // Optional icon component
+    parent?: string; // Optional parent route key for breadcrumb hierarchy
+    params?: string[]; // URL parameters
+    index?: boolean; // Whether this is an index route
+    hideFromBreadcrumb?: boolean; // Hide from breadcrumb trail
 }
 ```
 
@@ -48,6 +53,7 @@ interface RouteConfig {
 ### Adding a New Route
 
 1. **Define the route in `routes-config.tsx`:**
+
 ```typescript
 newRoute: {
   path: "/new-section/:id",
@@ -61,13 +67,14 @@ newRoute: {
 ```
 
 2. **The route is automatically:**
-   - Added to the router
-   - Available for navigation
-   - Included in breadcrumb generation
+    - Added to the router
+    - Available for navigation
+    - Included in breadcrumb generation
 
 ### Using the Smart Breadcrumb
 
 The `SmartBreadcrumb` component automatically:
+
 - Detects the current route
 - Builds the breadcrumb trail based on parent relationships
 - Provides clickable navigation links

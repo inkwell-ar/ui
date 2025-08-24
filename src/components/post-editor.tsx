@@ -1,3 +1,3 @@
 export default function PostEditor() {
-  return "Selected Post Editor";
+    return 'Selected Post Editor';
 }
