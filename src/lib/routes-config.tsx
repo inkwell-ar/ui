@@ -12,6 +12,7 @@ import {
 
 // Route components
 import BlogInfo from '@/components/routes/blog-info';
+import BlogEditor from '@/components/routes/blog-editor';
 import BlogSettings from '@/components/routes/blog-settings';
 import PostsList from '@/components/routes/posts-list';
 import PostViewerRoute from '@/components/routes/post-viewer-route';
@@ -55,6 +56,16 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         title: 'Blog Information',
         breadcrumbTitle: 'Info',
         icon: Info,
+        parent: 'home',
+        params: ['blogId'],
+    },
+
+    blogEditor: {
+        path: '/blog/:blogId/edit',
+        element: <BlogEditor />,
+        title: 'Edit Blog',
+        breadcrumbTitle: 'Edit',
+        icon: Feather,
         parent: 'home',
         params: ['blogId'],
     },
