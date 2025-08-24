@@ -20,7 +20,7 @@ import PostEditorRoute from '@/components/routes/post-editor-route';
 import PostNew from '@/components/routes/post-new';
 import UsersManagement from '@/components/routes/users-management';
 import UserDetails from '@/components/routes/user-details';
-import Permissions from '@/components/routes/permissions';
+import NewUser from '@/components/routes/new-user';
 import DefaultRoute from '@/components/routes/default-route';
 
 export interface RouteConfig {
@@ -151,11 +151,11 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         params: ['userId'],
     },
 
-    adminPermissions: {
-        path: '/admin/permissions',
-        element: <Permissions />,
-        title: 'Permissions',
-        breadcrumbTitle: 'Permissions',
+    adminNewUser: {
+        path: '/admin/new-user',
+        element: <NewUser />,
+        title: 'New User',
+        breadcrumbTitle: 'New User',
         icon: Shield,
         parent: 'home',
     },
@@ -315,10 +315,10 @@ export function getNavigationItems(
                 },
                 {
                     name:
-                        routesConfig.adminPermissions.breadcrumbTitle ||
-                        routesConfig.adminPermissions.title,
-                    route: routesConfig.adminPermissions.path,
-                    icon: routesConfig.adminPermissions.icon,
+                        routesConfig.adminNewUser.breadcrumbTitle ||
+                        routesConfig.adminNewUser.title,
+                    route: routesConfig.adminNewUser.path,
+                    icon: routesConfig.adminNewUser.icon,
                 },
             ];
 
