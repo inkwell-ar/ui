@@ -1,19 +1,19 @@
 import { useBlogsContext } from '@/contexts/blogs-context';
 import { NavCategory } from './nav-category';
-import { UserPlus2, Users2 } from 'lucide-react';
+import { routesConfig } from '@/lib/routes-config';
 
 const categoryName = 'Users';
 
 const categoryItems = [
     {
-        name: 'All Users',
-        route: '/admin/users',
-        icon: Users2,
+        name: routesConfig.adminUsers.title,
+        route: routesConfig.adminUsers.path,
+        icon: routesConfig.adminUsers.icon,
     },
     {
-        name: 'Permissions',
-        route: '/admin/permissions',
-        icon: UserPlus2,
+        name: routesConfig.adminNewUser.title,
+        route: routesConfig.adminNewUser.path,
+        icon: routesConfig.adminNewUser.icon,
     },
 ];
 

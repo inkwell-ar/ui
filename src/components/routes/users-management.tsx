@@ -10,14 +10,17 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Edit, Trash2, UserPlus, Check, Minus } from 'lucide-react';
+import { Edit, Trash2, UserPlus2, Check, Minus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function UsersManagement() {
-    const { blogWallets, isLoadingBlogWallets } = useBlogsContext();
+    const { blogWallets, isLoadingBlogWallets, selectedBlog, removeUser } =
+        useBlogsContext();
     const [showRemoveUserDialog, setShowRemoveUserDialog] = useState(false);
     const [userToRemove, setUserToRemove] = useState<string | null>(null);
+    const [isRemoving, setIsRemoving] = useState(false);
 
     const formatWallet = (wallet: string) => {
         return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
@@ -27,16 +30,40 @@ export default function UsersManagement() {
         return blogWallet.roles.includes(role);
     };
 
+    const isLastAdmin = (wallet: string) => {
+        const admins = blogWallets.filter((bw) =>
+            bw.roles.includes('DEFAULT_ADMIN_ROLE')
+        );
+        return admins.length === 1 && admins[0].wallet === wallet;
+    };
+
     const handleRemoveUser = (wallet: string) => {
+        if (isLastAdmin(wallet)) {
+            toast.error('Cannot remove the last admin from the blog');
+            return;
+        }
         setUserToRemove(wallet);
         setShowRemoveUserDialog(true);
     };
 
-    const confirmRemoveUser = () => {
-        if (userToRemove) {
-            // TODO: Implement actual user removal logic
-            console.log('Removing user:', userToRemove);
-            setUserToRemove(null);
+    const confirmRemoveUser = async () => {
+        if (!userToRemove || !selectedBlog) return;
+
+        setIsRemoving(true);
+        try {
+            const result = await removeUser(selectedBlog, userToRemove);
+            if (result.success) {
+                console.log('User removed successfully');
+                setShowRemoveUserDialog(false);
+            } else {
+                console.error('Failed to remove user:', result.error);
+                // TODO: Show error toast
+            }
+        } catch (error) {
+            console.error('Error removing user:', error);
+            // TODO: Show error toast
+        } finally {
+            setIsRemoving(false);
         }
     };
 
@@ -67,7 +94,7 @@ export default function UsersManagement() {
                 </div>
                 <Link to={`/admin/new-user`}>
                     <Button>
-                        <UserPlus className="mr-2 h-4 w-4" />
+                        <UserPlus2 className="mr-2 h-4 w-4" />
                         Add User
                     </Button>
                 </Link>
@@ -168,7 +195,7 @@ export default function UsersManagement() {
                 onConfirm={confirmRemoveUser}
                 title="Remove User"
                 description={`Are you sure you want to remove user ${userToRemove ? formatWallet(userToRemove) : ''} from this blog? This action cannot be undone.`}
-                confirmText="Remove"
+                confirmText={isRemoving ? 'Removing...' : 'Remove'}
                 cancelText="Cancel"
             />
         </div>

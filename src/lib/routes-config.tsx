@@ -4,10 +4,10 @@ import {
     Settings,
     List,
     Feather,
-    Users,
-    User,
     Shield,
     Home,
+    UserPlus2,
+    Users2,
 } from 'lucide-react';
 
 // Route components
@@ -137,7 +137,7 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         element: <UsersManagement />,
         title: 'Users Management',
         breadcrumbTitle: 'Users',
-        icon: Users,
+        icon: Users2,
         parent: 'home',
     },
 
@@ -146,7 +146,7 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         element: <UserDetails />,
         title: 'User Details',
         breadcrumbTitle: 'User Details',
-        icon: User,
+        icon: Shield,
         parent: 'adminUsers',
         params: ['userId'],
     },
@@ -156,7 +156,7 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         element: <NewUser />,
         title: 'New User',
         breadcrumbTitle: 'New User',
-        icon: Shield,
+        icon: UserPlus2,
         parent: 'home',
     },
 };

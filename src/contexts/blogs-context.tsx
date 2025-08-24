@@ -49,6 +49,10 @@ type BlogsContextType = {
         blogId: string,
         details: { title: string; description: string; logo: string }
     ) => Promise<{ success: boolean; error?: string }>;
+    removeUser: (
+        blogId: string,
+        wallet: string
+    ) => Promise<{ success: boolean; error?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -122,6 +126,54 @@ export const BlogsContextProvider = ({
                 }
             } catch (error) {
                 console.error('Failed to update blog details:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [aoconnect]
+    );
+
+    // Function to remove a user from a blog
+    const removeUser = useCallback(
+        async (
+            blogId: string,
+            wallet: string
+        ): Promise<{ success: boolean; error?: string }> => {
+            try {
+                // Create blog SDK instance with custom aoconnect if available
+                const blog = new InkwellBlogSDK({
+                    processId: blogId,
+                    aoconnect: aoconnect,
+                });
+
+                // Call revokeRole for both admin and editor roles
+                const adminResult = await blog.removeAdmins({
+                    accounts: [wallet],
+                });
+
+                const editorResult = await blog.removeEditors({
+                    accounts: [wallet],
+                });
+
+                if (adminResult.success || editorResult.success) {
+                    // Update local state to remove the user
+                    setBlogWallets((prevWallets) =>
+                        prevWallets.filter((w) => w.wallet !== wallet)
+                    );
+                    return { success: true };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Failed to remove user from blog',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to remove user:', error);
                 return {
                     success: false,
                     error:
@@ -350,6 +402,7 @@ export const BlogsContextProvider = ({
             isEditor,
             aoconnect,
             updateBlogDetails,
+            removeUser,
         }),
         [
             isLoading,
@@ -363,6 +416,7 @@ export const BlogsContextProvider = ({
             isEditor,
             aoconnect,
             updateBlogDetails,
+            removeUser,
         ]
     );
 
