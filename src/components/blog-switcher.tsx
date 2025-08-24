@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { useBlogsContext, type BlogData } from '@/contexts/blogs-context';
 import { useWCContext } from '@/contexts/wc-context';
 import { emptyBlogData } from '@/lib/constants';
+import { getImageSource } from '@/lib/utils';
 
 export function BlogSwitcher() {
     const { isMobile } = useSidebar();
@@ -68,13 +69,23 @@ export function BlogSwitcher() {
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                             disabled={!isConnected || !isAuthenticated}
                         >
-                            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg">
-                                {/* {activeBlogData && <activeBlogData.logo className="size-4" />} */}
+                            <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
                                 {activeBlogData &&
                                 activeBlogData.id !== emptyBlogData.id ? (
-                                    <SquarePen />
+                                    activeBlogData.logo &&
+                                    getImageSource(activeBlogData.logo) ? (
+                                        <img
+                                            src={getImageSource(
+                                                activeBlogData.logo
+                                            )}
+                                            alt={activeBlogData.title}
+                                            className="size-8 rounded-lg object-cover p-1"
+                                        />
+                                    ) : (
+                                        <SquarePen className="size-4" />
+                                    )
                                 ) : (
-                                    <ChevronDown />
+                                    <ChevronDown className="size-4" />
                                 )}
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
@@ -125,8 +136,16 @@ export function BlogSwitcher() {
                                 onClick={() => selectActiveBlog(blog)}
                                 className="gap-2 p-2"
                             >
-                                <div className="flex size-6 shrink-0 items-center justify-center rounded-md border">
-                                    <SquarePen />
+                                <div className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md border">
+                                    {blog.logo && getImageSource(blog.logo) ? (
+                                        <img
+                                            src={getImageSource(blog.logo)}
+                                            alt={blog.title}
+                                            className="size-6 rounded-md object-cover p-1"
+                                        />
+                                    ) : (
+                                        <SquarePen className="size-4" />
+                                    )}
                                 </div>
                                 <span className="truncate">{blog.title}</span>
                             </DropdownMenuItem>
