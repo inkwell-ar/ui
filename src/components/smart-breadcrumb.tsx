@@ -160,32 +160,3 @@ export function SmartBreadcrumb() {
         </Breadcrumb>
     );
 }
-
-// Helper function for path matching (copied from routes-config for internal use)
-function matchPath(
-    pattern: string,
-    pathname: string
-): { params: Record<string, string> } | null {
-    const patternParts = pattern.split('/').filter(Boolean);
-    const pathnameParts = pathname.split('/').filter(Boolean);
-
-    if (patternParts.length !== pathnameParts.length) {
-        return null;
-    }
-
-    const params: Record<string, string> = {};
-
-    for (let i = 0; i < patternParts.length; i++) {
-        const patternPart = patternParts[i];
-        const pathnamePart = pathnameParts[i];
-
-        if (patternPart.startsWith(':')) {
-            const paramName = patternPart.slice(1);
-            params[paramName] = pathnamePart;
-        } else if (patternPart !== pathnamePart) {
-            return null;
-        }
-    }
-
-    return { params };
-}

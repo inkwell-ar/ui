@@ -62,7 +62,7 @@ export default function BlogEditor() {
 
         setIsSaving(true);
         try {
-            const result = await updateBlogDetails(blogId, formData);
+            const result = await updateBlogDetails(formData);
 
             if (result.success) {
                 toast.success('Blog details updated successfully');
