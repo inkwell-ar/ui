@@ -18,7 +18,7 @@ import type { PostData } from '@/contexts/blogs-context';
 import { isArweaveTxId } from '@/lib/utils';
 
 export default function PostViewerRoute() {
-    const { blogId, postId } = useParams();
+    const { postId } = useParams();
     const { posts, isLoadingPosts, getPosts } = useBlogsContext();
     const [post, setPost] = useState<PostData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
