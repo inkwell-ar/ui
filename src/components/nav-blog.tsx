@@ -1,22 +1,27 @@
-import { useBlogsContext } from "@/contexts/blogs-context";
-import { emptyBlogData } from "@/lib/constants";
-import { NavCategory } from "./nav-category";
-import { Settings2 } from "lucide-react";
+import { useBlogsContext } from '@/contexts/blogs-context';
+import { emptyBlogData } from '@/lib/constants';
+import { NavCategory } from './nav-category';
+import { routesConfig } from '@/lib/routes-config';
 
-const categoryName = "Blog";
+const categoryName = 'Blog';
 
 const categoryItems = [
-  {
-    name: "Blog Details",
-    route: "#",
-    icon: Settings2,
-  },
+    {
+        name: routesConfig.blogInfo.title,
+        route: routesConfig.blogInfo.path,
+        icon: routesConfig.blogInfo.icon,
+    },
 ];
 
 export function NavBlog() {
-  const { selectedBlog } = useBlogsContext();
+    const { selectedBlog } = useBlogsContext();
 
-  if (!selectedBlog || selectedBlog === emptyBlogData.id) return null;
+    if (!selectedBlog || selectedBlog === emptyBlogData.id) return null;
 
-  return <NavCategory name={categoryName} items={categoryItems} />;
+    categoryItems[0].route = categoryItems[0].route.replace(
+        ':blogId',
+        selectedBlog || ''
+    );
+
+    return <NavCategory name={categoryName} items={categoryItems} />;
 }

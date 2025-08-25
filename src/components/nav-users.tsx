@@ -1,26 +1,26 @@
-import { useBlogsContext } from "@/contexts/blogs-context";
-import { NavCategory } from "./nav-category";
-import { UserPlus2, Users2 } from "lucide-react";
+import { useBlogsContext } from '@/contexts/blogs-context';
+import { NavCategory } from './nav-category';
+import { routesConfig } from '@/lib/routes-config';
 
-const categoryName = "Users";
+const categoryName = 'Users';
 
 const categoryItems = [
-  {
-    name: "All Users",
-    route: "#",
-    icon: Users2,
-  },
-  {
-    name: "Add User",
-    route: "#",
-    icon: UserPlus2,
-  },
+    {
+        name: routesConfig.adminUsers.title,
+        route: routesConfig.adminUsers.path,
+        icon: routesConfig.adminUsers.icon,
+    },
+    {
+        name: routesConfig.adminNewUser.title,
+        route: routesConfig.adminNewUser.path,
+        icon: routesConfig.adminNewUser.icon,
+    },
 ];
 
 export function NavUsers() {
-  const { isAdmin } = useBlogsContext();
+    const { isAdmin } = useBlogsContext();
 
-  if (!isAdmin) return null;
+    if (!isAdmin) return null;
 
-  return <NavCategory name={categoryName} items={categoryItems} />;
+    return <NavCategory name={categoryName} items={categoryItems} />;
 }
