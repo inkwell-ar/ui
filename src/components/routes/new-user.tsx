@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Save, X } from 'lucide-react';
+import { Pencil, Save, ShieldCheck, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { isArweaveTxId } from '@/lib/utils';
 import { useBlogsContext } from '@/contexts/blogs-context';
 
 export default function NewUser() {
     const navigate = useNavigate();
-    const { selectedBlog } = useBlogsContext();
+    const { selectedBlog, addUser } = useBlogsContext();
     const [showCancelDialog, setShowCancelDialog] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -49,10 +49,18 @@ export default function NewUser() {
 
         setIsSaving(true);
         try {
-            // TODO: Implement actual user addition logic
-            console.log('Adding user:', formData);
-            toast.success('User added successfully');
-            navigate('/admin/users');
+            const result = await addUser(
+                formData.wallet,
+                formData.isAdmin,
+                formData.isEditor
+            );
+
+            if (result.success) {
+                toast.success('User added successfully');
+                navigate('/admin/users');
+            } else {
+                toast.error(result.error || 'Failed to add user');
+            }
         } catch (error) {
             console.error('Error adding user:', error);
             toast.error('Failed to add user');
@@ -123,8 +131,14 @@ export default function NewUser() {
                                         handleInputChange('isAdmin', !!checked)
                                     }
                                 />
-                                <Label htmlFor="admin" className="font-normal">
-                                    Admin - Full permissions to manage the blog
+                                <Label
+                                    htmlFor="admin"
+                                    className="font-mono font-normal"
+                                >
+                                    <ShieldCheck className="h-4 w-4 text-green-500" />{' '}
+                                    <span className="font-bold">Admin</span>{' '}
+                                    &nbsp;&nbsp; Full permissions to manage the
+                                    blog
                                 </Label>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -135,8 +149,15 @@ export default function NewUser() {
                                         handleInputChange('isEditor', !!checked)
                                     }
                                 />
-                                <Label htmlFor="editor" className="font-normal">
-                                    Editor - Can create and edit posts
+                                <Label
+                                    htmlFor="editor"
+                                    className="font-mono font-normal"
+                                >
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="font-bold">
+                                        Editor
+                                    </span>{' '}
+                                    &nbsp; Can create and edit posts
                                 </Label>
                             </div>
                         </div>

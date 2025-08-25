@@ -44,7 +44,7 @@ const emptyUser: UserData = {
     avatar: '',
 };
 
-export function NavUser() {
+export function NavLoginButton() {
     const { isMobile } = useSidebar();
     const { theme, toggleTheme } = useThemeContext();
     const {

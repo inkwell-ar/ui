@@ -14,24 +14,26 @@ export default function AppRoutes() {
                             path={route.path}
                             element={route.element}
                         >
-                            {route.children.map((child, index) => {
-                                if (child.index) {
+                            {Object.entries(route.children).map(
+                                ([childKey, child]) => {
+                                    if (child.index) {
+                                        return (
+                                            <Route
+                                                key={`${key}-index`}
+                                                index
+                                                element={child.element}
+                                            />
+                                        );
+                                    }
                                     return (
                                         <Route
-                                            key={`${key}-index`}
-                                            index
+                                            key={`${key}_${childKey}`}
+                                            path={child.path}
                                             element={child.element}
                                         />
                                     );
                                 }
-                                return (
-                                    <Route
-                                        key={`${key}-${index}`}
-                                        path={child.path}
-                                        element={child.element}
-                                    />
-                                );
-                            })}
+                            )}
                         </Route>
                     );
                 }

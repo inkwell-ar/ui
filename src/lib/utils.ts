@@ -1,4 +1,3 @@
-import { BlogRegistrySDK } from '@inkwell.ar/sdk';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -31,5 +30,3 @@ export function getImageSource(logo: string): string {
     }
     return ''; // Return empty string for invalid logos
 }
-
-export const registry = new BlogRegistrySDK();

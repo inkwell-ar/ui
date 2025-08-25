@@ -1,15 +1,15 @@
 import { useBlogsContext } from '@/contexts/blogs-context';
 import { emptyBlogData } from '@/lib/constants';
 import { NavCategory } from './nav-category';
-import { Settings2 } from 'lucide-react';
+import { routesConfig } from '@/lib/routes-config';
 
 const categoryName = 'Blog';
 
 const categoryItems = [
     {
-        name: 'Blog Details',
-        route: '/blog/:blogId/info',
-        icon: Settings2,
+        name: routesConfig.blogInfo.title,
+        route: routesConfig.blogInfo.path,
+        icon: routesConfig.blogInfo.icon,
     },
 ];
 

@@ -4,11 +4,12 @@ import { useParams, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { isArweaveTxId, isValidUrl, getImageSource } from '@/lib/utils';
-import { LoaderCircle, Pencil } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
+import { routesConfig } from '@/lib/routes-config';
 
 export default function BlogInfo() {
     const { blogId } = useParams();
-    const { blogsData, isLoadingBlogDetails } = useBlogsContext();
+    const { blogsData, isLoadingBlogDetails, isAdmin } = useBlogsContext();
 
     const blogData = useMemo(
         () => blogsData.find((blog: BlogData) => blog.id === blogId),
@@ -64,11 +65,13 @@ export default function BlogInfo() {
                                 </Button>
                             </div>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link to={`/blog/${blogData.id}/edit`}>
-                                <Pencil className="size-4" />
-                            </Link>
-                        </Button>
+                        {isAdmin && (
+                            <Button variant="outline" size="sm" asChild>
+                                <Link to={`/blog/${blogData.id}/edit`}>
+                                    <routesConfig.blogEditor.icon className="size-4" />
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -93,17 +96,49 @@ export default function BlogInfo() {
                                         <span className="font-medium">
                                             Type:
                                         </span>{' '}
-                                        {isArweaveTxId(blogData.logo)
-                                            ? 'Arweave Transaction'
-                                            : isValidUrl(blogData.logo)
-                                              ? 'External URL'
-                                              : 'Invalid'}
+                                        {isArweaveTxId(blogData.logo) ? (
+                                            <a
+                                                href={`https://viewblock.io/arweave/tx/${blogData.logo}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Arweave Transaction
+                                            </a>
+                                        ) : isValidUrl(blogData.logo) ? (
+                                            <a
+                                                href={blogData.logo}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                'External URL'
+                                            </a>
+                                        ) : (
+                                            'Invalid'
+                                        )}
                                     </p>
-                                    <p className="font-mono break-all text-ellipsis">
+                                    <p className="break-all text-ellipsis">
                                         <span className="font-medium">
                                             Source:
                                         </span>{' '}
-                                        {blogData.logo}
+                                        {isValidUrl(blogData.logo) ||
+                                        isArweaveTxId(blogData.logo) ? (
+                                            <a
+                                                className="font-mono"
+                                                href={
+                                                    isValidUrl(blogData.logo)
+                                                        ? blogData.logo
+                                                        : `https://arweave.net/${blogData.logo}`
+                                                }
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {isValidUrl(blogData.logo)
+                                                    ? 'Open URL'
+                                                    : blogData.logo}
+                                            </a>
+                                        ) : (
+                                            blogData.logo
+                                        )}
                                     </p>
                                 </div>
                             </div>

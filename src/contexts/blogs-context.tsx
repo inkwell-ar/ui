@@ -1,6 +1,7 @@
 import {
     CUSTOM_CU_URL,
     emptyBlogData,
+    LOG_LEVEL,
     SELECTED_BLOG_STORAGE_KEY,
 } from '@/lib/constants';
 import {
@@ -14,7 +15,7 @@ import {
 } from 'react';
 import { useWCContext } from './wc-context';
 import {
-    BlogRegistrySDK,
+    InkwellRegistrySDK,
     InkwellBlogSDK,
     type BlogInfo,
     type BlogPermission,
@@ -45,13 +46,18 @@ type BlogsContextType = {
     isAdmin: boolean;
     isEditor: boolean;
     aoconnect: any;
-    updateBlogDetails: (
-        blogId: string,
-        details: { title: string; description: string; logo: string }
-    ) => Promise<{ success: boolean; error?: string }>;
+    updateBlogDetails: (details: {
+        title: string;
+        description: string;
+        logo: string;
+    }) => Promise<{ success: boolean; error?: string }>;
     removeUser: (
-        blogId: string,
         wallet: string
+    ) => Promise<{ success: boolean; error?: string }>;
+    addUser: (
+        wallet: string,
+        isAdmin: boolean,
+        isEditor: boolean
     ) => Promise<{ success: boolean; error?: string }>;
 };
 
@@ -65,6 +71,16 @@ export const BlogsContext = createContext<BlogsContextType | undefined>(
 export const BlogsContextProvider = ({
     children,
 }: BlogsContextProviderProps) => {
+    const [blogs, setBlogs] = useState<BlogPermission[]>([]);
+    const [blogsData, setBlogsData] = useState<BlogData[]>([]);
+    const [blogWallets, setBlogWallets] = useState<BlogWallet[]>([]);
+    const [selectedBlog, setSelectedBlog] = useState<string>('');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isEditor, setIsEditor] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
+    const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
+
     const { walletAddress = '', isConnected, isAuthenticated } = useWCContext();
 
     // Memoize aoconnect - only create if needed, for custom CU
@@ -76,33 +92,44 @@ export const BlogsContextProvider = ({
     }, []);
 
     // Memoize registry - only recreate if needed
-    const registry = useMemo(() => new BlogRegistrySDK(aoconnect), [aoconnect]);
+    const registry = useMemo(
+        () =>
+            new InkwellRegistrySDK({
+                aoconnect: aoconnect,
+                logLevel: LOG_LEVEL,
+            }),
+        [aoconnect]
+    );
 
-    const [blogs, setBlogs] = useState<BlogPermission[]>([]);
-    const [blogsData, setBlogsData] = useState<BlogData[]>([]);
-    const [blogWallets, setBlogWallets] = useState<BlogWallet[]>([]);
-    const [selectedBlog, setSelectedBlog] = useState<string>('');
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isEditor, setIsEditor] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
-    const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
+    // Memoize selectedBlogSDK - only recreate if needed
+    const selectedBlogSDK = useMemo(() => {
+        console.log('selectedBlog', selectedBlog);
+        if (!selectedBlog) return null;
+        const blogSDK = new InkwellBlogSDK({
+            processId: selectedBlog,
+            aoconnect: aoconnect,
+            logLevel: LOG_LEVEL,
+        });
+        console.log('blogSDK', blogSDK);
+        return blogSDK;
+    }, [selectedBlog, aoconnect]);
 
     // Function to update blog details
     const updateBlogDetails = useCallback(
-        async (
-            blogId: string,
-            details: { title: string; description: string; logo: string }
-        ): Promise<{ success: boolean; error?: string }> => {
+        async (details: {
+            title: string;
+            description: string;
+            logo: string;
+        }): Promise<{ success: boolean; error?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
             try {
-                // Create blog SDK instance with custom aoconnect if available
-                const blog = new InkwellBlogSDK({
-                    processId: blogId,
-                    aoconnect: aoconnect,
-                });
-
                 // Call setBlogDetails with the form data
-                const result = await blog.setBlogDetails({
+                const result = await selectedBlogSDK.setBlogDetails({
                     data: {
                         title: details.title,
                         description: details.description,
@@ -114,7 +141,9 @@ export const BlogsContextProvider = ({
                     // Update local state to reflect changes
                     setBlogsData((prevData) =>
                         prevData.map((blog) =>
-                            blog.id === blogId ? { ...blog, ...details } : blog
+                            blog.id === selectedBlog
+                                ? { ...blog, ...details }
+                                : blog
                         )
                     );
                     return { success: true };
@@ -135,28 +164,27 @@ export const BlogsContextProvider = ({
                 };
             }
         },
-        [aoconnect]
+        [selectedBlogSDK, aoconnect]
     );
 
     // Function to remove a user from a blog
     const removeUser = useCallback(
         async (
-            blogId: string,
             wallet: string
         ): Promise<{ success: boolean; error?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
             try {
-                // Create blog SDK instance with custom aoconnect if available
-                const blog = new InkwellBlogSDK({
-                    processId: blogId,
-                    aoconnect: aoconnect,
-                });
-
                 // Call revokeRole for both admin and editor roles
-                const adminResult = await blog.removeAdmins({
+                const adminResult = await selectedBlogSDK.removeAdmins({
                     accounts: [wallet],
                 });
 
-                const editorResult = await blog.removeEditors({
+                const editorResult = await selectedBlogSDK.removeEditors({
                     accounts: [wallet],
                 });
 
@@ -167,6 +195,9 @@ export const BlogsContextProvider = ({
                     );
                     return { success: true };
                 } else {
+                    console.log('Failed to remove user from blog');
+                    console.log('adminResult: ', adminResult);
+                    console.log('editorResult: ', editorResult);
                     return {
                         success: false,
                         error: 'Failed to remove user from blog',
@@ -183,7 +214,72 @@ export const BlogsContextProvider = ({
                 };
             }
         },
-        [aoconnect]
+        [selectedBlogSDK, aoconnect]
+    );
+
+    // Function to add a user to a blog
+    const addUser = useCallback(
+        async (
+            wallet: string,
+            isAdmin: boolean,
+            isEditor: boolean
+        ): Promise<{ success: boolean; error?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
+            try {
+                const results = [];
+
+                // Add admin role if selected
+                if (isAdmin) {
+                    const adminResult = await selectedBlogSDK.addAdmins({
+                        accounts: [wallet],
+                    });
+                    results.push(adminResult);
+                }
+
+                // Add editor role if selected
+                if (isEditor) {
+                    const editorResult = await selectedBlogSDK.addEditors({
+                        accounts: [wallet],
+                    });
+                    results.push(editorResult);
+                }
+
+                if (results.some((result) => result.success)) {
+                    // Update local state to add the user
+                    const roles: string[] = [];
+                    if (isAdmin) roles.push('DEFAULT_ADMIN_ROLE');
+                    if (isEditor) roles.push('EDITOR_ROLE');
+
+                    setBlogWallets((prevWallets) => [
+                        ...prevWallets,
+                        { wallet, roles },
+                    ]);
+                    return { success: true };
+                } else {
+                    console.log('Failed to add user to blog');
+                    console.log('results: ', results);
+                    return {
+                        success: false,
+                        error: 'Failed to add user to blog',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to add user:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [selectedBlogSDK, aoconnect]
     );
 
     // Memoize the reset function to prevent unnecessary re-renders
@@ -403,6 +499,7 @@ export const BlogsContextProvider = ({
             aoconnect,
             updateBlogDetails,
             removeUser,
+            addUser,
         }),
         [
             isLoading,
@@ -417,6 +514,7 @@ export const BlogsContextProvider = ({
             aoconnect,
             updateBlogDetails,
             removeUser,
+            addUser,
         ]
     );
 

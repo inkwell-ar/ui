@@ -1,4 +1,5 @@
 import type { BlogData } from '@/contexts/blogs-context';
+import { LogLevel } from '@inkwell.ar/sdk';
 import type { PermissionType } from 'arconnect';
 
 export const ALL_PERMISSIONS: PermissionType[] = [
@@ -43,3 +44,4 @@ export const emptyBlogData: BlogData = {
 };
 
 export const CUSTOM_CU_URL = import.meta.env.VITE_CUSTOM_CU_URL || '';
+export const LOG_LEVEL = import.meta.env.VITE_LOG_LEVEL || LogLevel.SILENT;

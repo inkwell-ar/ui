@@ -1,4 +1,4 @@
-import { NavUser } from '@/components/nav-user';
+import { NavLoginButton } from '@/components/nav-login-button';
 import { BlogSwitcher } from '@/components/blog-switcher';
 import {
     Sidebar,
@@ -31,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavUsers />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser />
+                <NavLoginButton />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

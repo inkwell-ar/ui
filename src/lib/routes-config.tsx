@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import {
-    Info,
     Settings,
     List,
     Feather,
@@ -8,6 +7,8 @@ import {
     Home,
     UserPlus2,
     Users2,
+    Settings2,
+    Pencil,
 } from 'lucide-react';
 
 // Route components
@@ -36,7 +37,7 @@ export interface RouteConfig {
 }
 
 export interface NestedRouteConfig extends RouteConfig {
-    children?: RouteConfig[];
+    children?: Record<string, RouteConfig>;
 }
 
 export const routesConfig: Record<string, NestedRouteConfig> = {
@@ -55,7 +56,7 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         element: <BlogInfo />,
         title: 'Blog Information',
         breadcrumbTitle: 'Info',
-        icon: Info,
+        icon: Settings2,
         parent: 'home',
         params: ['blogId'],
     },
@@ -65,7 +66,7 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         element: <BlogEditor />,
         title: 'Edit Blog',
         breadcrumbTitle: 'Edit',
-        icon: Feather,
+        icon: Pencil,
         parent: 'home',
         params: ['blogId'],
     },
@@ -89,9 +90,9 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
         icon: List,
         parent: 'home',
         params: ['blogId'],
-        children: [
-            {
-                path: '',
+        children: {
+            index: {
+                path: '/posts/:blogId',
                 element: (
                     <div className="text-muted-foreground flex h-full items-center justify-center">
                         Select a post to view
@@ -102,25 +103,8 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
                 index: true,
                 hideFromBreadcrumb: true,
             },
-            {
-                path: ':postId',
-                element: <PostViewerRoute />,
-                title: 'View Post',
-                breadcrumbTitle: 'View Post',
-                parent: 'posts',
-                params: ['blogId', 'postId'],
-            },
-            {
-                path: ':postId/edit',
-                element: <PostEditorRoute />,
-                title: 'Edit Post',
-                breadcrumbTitle: 'Edit',
-                icon: Feather,
-                parent: 'posts',
-                params: ['blogId', 'postId'],
-            },
-            {
-                path: 'new',
+            new: {
+                path: '/posts/:blogId/new',
                 element: <PostNew />,
                 title: 'Create New Post',
                 breadcrumbTitle: 'New Post',
@@ -128,7 +112,24 @@ export const routesConfig: Record<string, NestedRouteConfig> = {
                 parent: 'posts',
                 params: ['blogId'],
             },
-        ],
+            viewer: {
+                path: '/posts/:blogId/:postId',
+                element: <PostViewerRoute />,
+                title: 'View Post',
+                breadcrumbTitle: 'View Post',
+                parent: 'posts',
+                params: ['blogId', 'postId'],
+            },
+            editor: {
+                path: '/posts/:blogId/:postId/edit',
+                element: <PostEditorRoute />,
+                title: 'Edit Post',
+                breadcrumbTitle: 'Edit',
+                icon: Feather,
+                parent: 'posts',
+                params: ['blogId', 'postId'],
+            },
+        },
     },
 
     // Admin routes
@@ -168,7 +169,7 @@ export function findRouteByPath(path: string): RouteConfig | null {
             return route;
         }
         if (route.children) {
-            for (const child of route.children) {
+            for (const child of Object.values(route.children)) {
                 const fullChildPath =
                     route.path + (child.path ? `/${child.path}` : '');
                 if (fullChildPath === path || child.path === path) {
@@ -242,14 +243,13 @@ export function matchRouteToConfig(
 
         // Check children
         if (route.children) {
-            for (const child of route.children) {
-                const fullChildPath =
-                    route.path + (child.path ? `/${child.path}` : '');
-                const childMatch = matchPath(fullChildPath, pathname);
+            for (const [childKey, child] of Object.entries(route.children)) {
+                // Since child paths are now absolute, use them directly
+                const childMatch = matchPath(child.path, pathname);
                 if (childMatch) {
                     return {
                         route: child,
-                        key: `${key}_child`,
+                        key: `${key}_${childKey}`,
                         params: childMatch.params,
                     };
                 }
@@ -294,14 +294,16 @@ export function getNavigationItems(
                     icon: routesConfig.posts.icon,
                 },
                 ...(routesConfig.posts.children
-                    ?.filter((child) => !child.hideFromBreadcrumb)
-                    .map((child) => ({
-                        name: child.breadcrumbTitle || child.title,
-                        route:
-                            routesConfig.posts.path +
-                            (child.path ? `/${child.path}` : ''),
-                        icon: child.icon,
-                    })) || []),
+                    ? Object.values(routesConfig.posts.children)
+                          .filter((child) => !child.hideFromBreadcrumb)
+                          .map((child) => ({
+                              name: child.breadcrumbTitle || child.title,
+                              route:
+                                  routesConfig.posts.path +
+                                  (child.path ? `/${child.path}` : ''),
+                              icon: child.icon,
+                          }))
+                    : []),
             ];
 
         case 'admin':

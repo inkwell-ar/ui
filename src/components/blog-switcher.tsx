@@ -26,8 +26,11 @@ import { useBlogsContext, type BlogData } from '@/contexts/blogs-context';
 import { useWCContext } from '@/contexts/wc-context';
 import { emptyBlogData } from '@/lib/constants';
 import { getImageSource } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { routesConfig } from '@/lib/routes-config';
 
 export function BlogSwitcher() {
+    const navigate = useNavigate();
     const { isMobile } = useSidebar();
     const { isConnected, isAuthenticated } = useWCContext();
     const {
@@ -55,8 +58,16 @@ export function BlogSwitcher() {
     }, [blogsData, selectedBlog]);
 
     const selectActiveBlog = (blog: BlogData) => {
+        if (blog.id === selectedBlog) return;
+
         setActiveBlogData(blog);
         setSelectedBlog(blog.id);
+
+        if (blog.id === emptyBlogData.id) {
+            navigate(routesConfig.home.path);
+        } else {
+            navigate(routesConfig.blogInfo.path.replace(':blogId', blog.id));
+        }
     };
 
     return (

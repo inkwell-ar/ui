@@ -10,7 +10,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Edit, Trash2, UserPlus2, Check, Minus } from 'lucide-react';
+import { Edit, Trash2, UserPlus2, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -51,7 +51,7 @@ export default function UsersManagement() {
 
         setIsRemoving(true);
         try {
-            const result = await removeUser(selectedBlog, userToRemove);
+            const result = await removeUser(userToRemove);
             if (result.success) {
                 console.log('User removed successfully');
                 setShowRemoveUserDialog(false);
@@ -147,7 +147,7 @@ export default function UsersManagement() {
                                             ) ? (
                                                 <Check className="mx-auto h-4 w-4 text-green-600" />
                                             ) : (
-                                                <Minus className="text-muted-foreground mx-auto h-4 w-4" />
+                                                <X className="mx-auto h-4 w-4 text-red-400" />
                                             )}
                                         </TableCell>
                                         <TableCell className="text-center">
@@ -157,7 +157,7 @@ export default function UsersManagement() {
                                             ) ? (
                                                 <Check className="mx-auto h-4 w-4 text-green-600" />
                                             ) : (
-                                                <Minus className="text-muted-foreground mx-auto h-4 w-4" />
+                                                <X className="mx-auto h-4 w-4 text-red-400" />
                                             )}
                                         </TableCell>
                                         <TableCell className="text-right">
