@@ -19,6 +19,7 @@ import {
     InkwellBlogSDK,
     type BlogInfo,
     type BlogPermission,
+    type BlogPost,
 } from '@inkwell.ar/sdk';
 import { connect } from '@permaweb/aoconnect';
 
@@ -34,13 +35,17 @@ export type BlogWallet = {
     roles: string[];
 };
 
+export type PostData = BlogPost;
+
 type BlogsContextType = {
     isLoading: boolean;
     isLoadingBlogDetails: boolean;
     isLoadingBlogWallets: boolean;
+    isLoadingPosts: boolean;
     blogs: BlogPermission[];
     blogsData: BlogData[];
     blogWallets: BlogWallet[];
+    posts: PostData[];
     setSelectedBlog: React.Dispatch<React.SetStateAction<string>>;
     selectedBlog: string;
     isAdmin: boolean;
@@ -59,6 +64,7 @@ type BlogsContextType = {
         isAdmin: boolean,
         isEditor: boolean
     ) => Promise<{ success: boolean; error?: string }>;
+    getPosts: () => Promise<{ success: boolean; error?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -74,12 +80,14 @@ export const BlogsContextProvider = ({
     const [blogs, setBlogs] = useState<BlogPermission[]>([]);
     const [blogsData, setBlogsData] = useState<BlogData[]>([]);
     const [blogWallets, setBlogWallets] = useState<BlogWallet[]>([]);
+    const [posts, setPosts] = useState<PostData[]>([]);
     const [selectedBlog, setSelectedBlog] = useState<string>('');
     const [isAdmin, setIsAdmin] = useState(false);
     const [isEditor, setIsEditor] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
     const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
+    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
     const { walletAddress = '', isConnected, isAuthenticated } = useWCContext();
 
@@ -282,15 +290,56 @@ export const BlogsContextProvider = ({
         [selectedBlogSDK, aoconnect]
     );
 
+    // Function to get posts for the selected blog
+    const getPosts = useCallback(async (): Promise<{
+        success: boolean;
+        error?: string;
+    }> => {
+        if (!selectedBlogSDK) {
+            return {
+                success: false,
+                error: 'No selected blog',
+            };
+        }
+
+        setIsLoadingPosts(true);
+        try {
+            const result = await selectedBlogSDK.getAllPosts();
+
+            if (result.success && result.data) {
+                // Transform the posts data to match our PostData type
+                const transformedPosts: PostData[] = result.data as BlogPost[];
+
+                setPosts(transformedPosts);
+                return { success: true };
+            } else {
+                return {
+                    success: false,
+                    error: 'Failed to fetch posts',
+                };
+            }
+        } catch (error) {
+            console.error('Failed to get posts:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
+        } finally {
+            setIsLoadingPosts(false);
+        }
+    }, [selectedBlogSDK]);
+
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
         setBlogs([]);
         setBlogsData([]);
         setBlogWallets([]);
+        setPosts([]);
         setSelectedBlog('');
         setIsLoading(false);
         setIsLoadingBlogDetails(false);
         setIsLoadingBlogWallets(false);
+        setIsLoadingPosts(false);
         setIsAdmin(false);
         setIsEditor(false);
     }, []);
@@ -489,9 +538,11 @@ export const BlogsContextProvider = ({
             isLoading,
             isLoadingBlogDetails,
             isLoadingBlogWallets,
+            isLoadingPosts,
             blogs,
             blogsData,
             blogWallets,
+            posts,
             selectedBlog,
             setSelectedBlog,
             isAdmin,
@@ -500,14 +551,17 @@ export const BlogsContextProvider = ({
             updateBlogDetails,
             removeUser,
             addUser,
+            getPosts,
         }),
         [
             isLoading,
             isLoadingBlogDetails,
             isLoadingBlogWallets,
+            isLoadingPosts,
             blogs,
             blogsData,
             blogWallets,
+            posts,
             selectedBlog,
             isAdmin,
             isEditor,
@@ -515,6 +569,7 @@ export const BlogsContextProvider = ({
             updateBlogDetails,
             removeUser,
             addUser,
+            getPosts,
         ]
     );
 

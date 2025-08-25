@@ -57,12 +57,14 @@ export default function BlogInfo() {
                                 <CardTitle className="text-3xl font-bold">
                                     {blogData.title}
                                 </CardTitle>
-                                <Button
-                                    variant="link"
+                                <a
+                                    href={`https://ao.link/#/entity/${blogData.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="text-muted-foreground truncate font-mono text-sm break-all text-ellipsis"
                                 >
                                     {blogData.id}
-                                </Button>
+                                </a>
                             </div>
                         </div>
                         {isAdmin && (
