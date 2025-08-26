@@ -15,6 +15,7 @@ import { UserBadge } from '../user-badge';
 import { TagBadge } from '../tag-badge';
 import { DateDisplay } from '../date-display';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { routesConfig } from '@/lib/routes-config';
 
 export default function PostViewerRoute() {
     const { postId } = useParams();
@@ -49,9 +50,15 @@ export default function PostViewerRoute() {
     const handleEditPost = () => {
         if (!selectedBlog || !postId) return;
 
+        // Calculate the route path for the edit post route
+        let routePath = routesConfig.posts.children?.editor.path;
+        if (!routePath) return;
+        routePath = routePath
+            .replace(':blogId', selectedBlog)
+            .replace(':postId', postId);
+
         // Navigate to edit post route
-        navigate(`/posts/${selectedBlog}/edit/${postId}`);
-        // TODO: Implement edit post route and component
+        navigate(routePath);
     };
 
     const handleDeletePost = () => {
