@@ -14,6 +14,7 @@ import type { PostData } from '@/contexts/blogs-context';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DateTimePicker } from '@/components/date-picker';
 import { isArweaveTxId } from '@/lib/utils';
+import { UserBadge } from './user-badge';
 
 interface PostFormData {
     title: string;
@@ -352,21 +353,17 @@ export default function PostEditor() {
                                     <div className="flex flex-wrap gap-2">
                                         {formData.authors.map(
                                             (author, index) => (
-                                                <Badge
-                                                    key={index}
-                                                    variant="secondary"
-                                                    className="flex items-center gap-1 font-mono text-xs"
-                                                >
-                                                    {`${author.slice(0, 6)}...${author.slice(-4)}`}
-                                                    <X
-                                                        className="hover:text-destructive h-3 w-3 cursor-pointer"
-                                                        onClick={() =>
-                                                            handleRemoveAuthor(
-                                                                author
-                                                            )
-                                                        }
-                                                    />
-                                                </Badge>
+                                                <UserBadge
+                                                    key={`${author}-${index}`}
+                                                    author={author}
+                                                    buttonPosition="right"
+                                                    onClick={() =>
+                                                        handleRemoveAuthor(
+                                                            author
+                                                        )
+                                                    }
+                                                    showTooltip={true}
+                                                />
                                             )
                                         )}
                                     </div>
