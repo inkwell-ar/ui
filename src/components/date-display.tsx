@@ -1,4 +1,4 @@
-import { Calendar, FilePenLine, type LucideIcon } from 'lucide-react';
+import { Calendar, FilePenLine } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface DateDisplayProps {
