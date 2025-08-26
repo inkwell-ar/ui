@@ -8,7 +8,7 @@ export function NavHeaderLogo() {
             <SidebarMenuItem>
                 <SidebarMenuButton
                     asChild
-                    className="text-background hover:text-background dark:text-foreground dark:hover:text-foreground h-12 bg-[#e05d38] hover:bg-[#e05d38] data-[slot=sidebar-menu-button]:!p-1.5"
+                    className="text-background hover:text-background dark:text-foreground dark:hover:text-foreground bg-primary hover:bg-primary h-12 rounded-lg data-[slot=sidebar-menu-button]:!p-1.5"
                 >
                     <Link to="/">
                         <img src={logo} alt="🪶" className="!size-8" />

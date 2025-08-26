@@ -65,6 +65,9 @@ type BlogsContextType = {
         isEditor: boolean
     ) => Promise<{ success: boolean; error?: string }>;
     getPosts: () => Promise<{ success: boolean; error?: string }>;
+    deletePost: (
+        postId: string
+    ) => Promise<{ success: boolean; error?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -329,6 +332,49 @@ export const BlogsContextProvider = ({
         }
     }, [selectedBlogSDK]);
 
+    // Function to delete a post
+    const deletePost = useCallback(
+        async (
+            postId: string
+        ): Promise<{ success: boolean; error?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
+            try {
+                const postIdNumber = parseInt(postId);
+                const result = await selectedBlogSDK.deletePost({
+                    id: postIdNumber,
+                });
+
+                if (result.success) {
+                    // Update local state to remove the post
+                    setPosts((prevPosts) =>
+                        prevPosts.filter((post) => post.id !== postIdNumber)
+                    );
+                    return { success: true };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Failed to remove post',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to remove post:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [selectedBlogSDK]
+    );
+
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
         setBlogs([]);
@@ -552,6 +598,7 @@ export const BlogsContextProvider = ({
             removeUser,
             addUser,
             getPosts,
+            deletePost,
         }),
         [
             isLoading,
@@ -570,6 +617,7 @@ export const BlogsContextProvider = ({
             removeUser,
             addUser,
             getPosts,
+            deletePost,
         ]
     );
 

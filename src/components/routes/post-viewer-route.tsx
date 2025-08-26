@@ -1,27 +1,30 @@
 import { useParams } from 'react-router-dom';
 import { useBlogsContext } from '@/contexts/blogs-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Tag, User2, Calendar, Clock } from 'lucide-react';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Edit, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { PostData } from '@/contexts/blogs-context';
-import { isArweaveTxId } from '@/lib/utils';
+import { UserBadge } from '../user-badge';
+import { TagBadge } from '../tag-badge';
+import { DateDisplay } from '../date-display';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function PostViewerRoute() {
     const { postId } = useParams();
-    const { posts, isLoadingPosts, getPosts } = useBlogsContext();
+    const navigate = useNavigate();
+    const { posts, isLoadingPosts, getPosts, selectedBlog, deletePost } =
+        useBlogsContext();
     const [post, setPost] = useState<PostData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const loadPost = async () => {
@@ -43,28 +46,47 @@ export default function PostViewerRoute() {
         loadPost();
     }, [postId, posts, isLoadingPosts, getPosts]);
 
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+    const handleEditPost = () => {
+        if (!selectedBlog || !postId) return;
+
+        // Navigate to edit post route
+        navigate(`/posts/${selectedBlog}/edit/${postId}`);
+        // TODO: Implement edit post route and component
     };
 
-    const formatWallet = (wallet: string) => {
-        if (isArweaveTxId(wallet)) {
-            return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+    const handleDeletePost = () => {
+        setShowDeleteDialog(true);
+    };
+
+    const confirmDeletePost = async () => {
+        if (!postId) return;
+
+        setIsDeleting(true);
+        try {
+            const result = await deletePost(postId);
+
+            if (result.success) {
+                // After successful deletion, navigate back to posts list
+                if (selectedBlog) {
+                    navigate(`/posts/${selectedBlog}`);
+                }
+            } else {
+                console.error('Failed to delete post:', result.error);
+                // TODO: Show error toast
+            }
+        } catch (error) {
+            console.error('Failed to delete post:', error);
+            // TODO: Show error toast
+        } finally {
+            setIsDeleting(false);
+            setShowDeleteDialog(false);
         }
-        return wallet;
     };
 
     if (isLoading || isLoadingPosts) {
         return (
             <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                    <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin border-b-2"></div>
                     <p className="text-muted-foreground">Loading post...</p>
                 </div>
             </div>
@@ -86,86 +108,95 @@ export default function PostViewerRoute() {
 
     return (
         <ScrollArea className="h-full w-full">
-            <div className="w-full p-6">
-                <Card className="w-full min-w-0">
+            <div className="w-full">
+                <Card className="w-full min-w-0 rounded-none border-0">
                     <CardHeader>
-                        <CardTitle className="text-3xl leading-tight font-bold">
-                            {post.title}
-                        </CardTitle>
+                        <div className="flex items-start justify-between gap-1">
+                            {/* Title */}
+                            <CardTitle className="text-3xl leading-tight font-bold">
+                                {post.title}
+                            </CardTitle>
+                            {/* Action Buttons */}
+                            <div className="flex gap-1">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={handleEditPost}
+                                    disabled={isDeleting}
+                                >
+                                    <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    disabled={isDeleting}
+                                    onClick={handleDeletePost}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Description */}
                         {post.description && (
-                            <p className="text-muted-foreground mt-2 text-lg">
+                            <p className="text-muted-foreground mt-1 text-lg">
                                 {post.description}
                             </p>
                         )}
 
-                        {/* Metadata */}
-                        <div className="text-muted-foreground mt-4 flex flex-wrap gap-4 text-sm">
-                            {post.published_at && (
-                                <div className="flex items-center gap-1">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>
-                                        Published{' '}
-                                        {formatDate(post.published_at)}
-                                    </span>
-                                </div>
-                            )}
-                            {post.last_update &&
-                                post.last_update !== post.published_at && (
-                                    <div className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
-                                        <span>
-                                            Updated{' '}
-                                            {formatDate(post.last_update)}
-                                        </span>
+                        <div className="flex items-start justify-between gap-1">
+                            <div className="mt-1 flex flex-col items-start gap-1">
+                                {/* Authors */}
+                                {post.authors && post.authors.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        <TooltipProvider>
+                                            {post.authors.map(
+                                                (author, index) => (
+                                                    <UserBadge
+                                                        key={`${index}`}
+                                                        author={author}
+                                                        showTooltip={true}
+                                                    />
+                                                )
+                                            )}
+                                        </TooltipProvider>
                                     </div>
                                 )}
-                        </div>
 
-                        {/* Authors */}
-                        {post.authors && post.authors.length > 0 && (
-                            <div className="mt-4">
-                                <div className="flex flex-wrap gap-2">
-                                    <TooltipProvider>
-                                        {post.authors.map((author, index) => (
-                                            <Tooltip key={index}>
-                                                <TooltipTrigger asChild>
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className="cursor-help gap-1"
-                                                    >
-                                                        <User2 className="h-3 w-3" />
-                                                        {formatWallet(author)}
-                                                    </Badge>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p className="font-mono text-xs">
-                                                        {author}
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
+                                {/* Labels */}
+                                {post.labels && post.labels.length > 0 && (
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        {post.labels.map((label, index) => (
+                                            <TagBadge
+                                                key={`${index}`}
+                                                label={label}
+                                            />
                                         ))}
-                                    </TooltipProvider>
-                                </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
 
-                        {/* Labels */}
-                        {post.labels && post.labels.length > 0 && (
-                            <div className="mt-4">
-                                <div className="flex flex-wrap gap-2">
-                                    {post.labels.map((label, index) => (
-                                        <Badge
-                                            key={index}
-                                            variant="outline"
-                                            className="gap-1"
-                                        >
-                                            <Tag className="h-3 w-3" />
-                                            {label}
-                                        </Badge>
-                                    ))}
-                                </div>
+                            {/* Metadata */}
+                            <div className="text-muted-foreground flex flex-wrap gap-1 text-sm">
+                                {post.published_at && (
+                                    <DateDisplay
+                                        timestamp={post.published_at}
+                                        size="sm"
+                                        isLastUpdate={false}
+                                    />
+                                )}
+                                {post.last_update &&
+                                    post.last_update !== post.published_at && (
+                                        <DateDisplay
+                                            timestamp={post.last_update}
+                                            size="sm"
+                                            isLastUpdate={true}
+                                        />
+                                    )}
                             </div>
-                        )}
+                        </div>
                     </CardHeader>
 
                     <CardContent>
@@ -297,6 +328,18 @@ export default function PostViewerRoute() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={confirmDeletePost}
+                title="Delete Post"
+                description={`Are you sure you want to delete "${post?.title}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="destructive"
+            />
         </ScrollArea>
     );
 }
