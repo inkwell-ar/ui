@@ -168,7 +168,7 @@ export function FileUpload({
             {/* Preview */}
             {showPreview && imageSource && (
                 <div>
-                    <Label>Preview</Label>
+                    <Label>Uploaded File</Label>
                     <div className="mt-2 rounded-lg border p-4">
                         <img
                             src={imageSource}
