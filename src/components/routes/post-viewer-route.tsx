@@ -12,10 +12,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { PostData } from '@/contexts/blogs-context';
 import { UserBadge } from '../user-badge';
-import { TagBadge } from '../tag-badge';
 import { DateDisplay } from '../date-display';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { routesConfig } from '@/lib/routes-config';
+import { TagBadge } from '../tag-badge';
 
 export default function PostViewerRoute() {
     const { postId } = useParams();
@@ -179,6 +179,7 @@ export default function PostViewerRoute() {
                                             <TagBadge
                                                 key={`${index}`}
                                                 label={label}
+                                                showTooltip={true}
                                             />
                                         ))}
                                     </div>

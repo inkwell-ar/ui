@@ -9,6 +9,7 @@ type UserBadgeProps = {
     key?: string;
     author: string;
     showTooltip?: boolean;
+    showSeparator?: boolean;
     buttonPosition?: 'left' | 'right';
     onClick?: () => void;
 };
@@ -30,6 +31,7 @@ export function UserBadge({
     key,
     author,
     showTooltip,
+    showSeparator,
     buttonPosition,
     onClick,
 }: UserBadgeProps) {
@@ -41,12 +43,12 @@ export function UserBadge({
                 {...(key !== undefined ? { key } : {})}
             >
                 {buttonPosition === 'left' && <BadgeButton onClick={onClick} />}
-                {buttonPosition === 'left' && (
+                {buttonPosition === 'left' && showSeparator && (
                     <Separator orientation="vertical" />
                 )}
                 <User2 className="h-3 w-3" />
                 {formatWallet(author)}
-                {buttonPosition === 'right' && (
+                {buttonPosition === 'right' && showSeparator && (
                     <Separator orientation="vertical" />
                 )}
                 {buttonPosition === 'right' && (
@@ -66,12 +68,12 @@ export function UserBadge({
                     {buttonPosition === 'left' && (
                         <BadgeButton onClick={onClick} />
                     )}
-                    {buttonPosition === 'left' && (
+                    {buttonPosition === 'left' && showSeparator && (
                         <Separator orientation="vertical" />
                     )}
                     <User2 className="h-3 w-3" />
                     {formatWallet(author)}
-                    {buttonPosition === 'right' && (
+                    {buttonPosition === 'right' && showSeparator && (
                         <Separator orientation="vertical" />
                     )}
                     {buttonPosition === 'right' && (

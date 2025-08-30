@@ -5,16 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { X, User } from 'lucide-react';
+import { UserPlus2, Tag } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import type { PostData } from '@/contexts/blogs-context';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { DateTimePicker } from '@/components/date-picker';
 import { isArweaveTxId } from '@/lib/utils';
 import { UserBadge } from './user-badge';
+import { toast } from 'sonner';
+import { TagBadge } from './tag-badge';
 
 interface PostFormData {
     title: string;
@@ -150,6 +151,10 @@ export default function PostEditor() {
     };
 
     const handleRemoveAuthor = (authorToRemove: string) => {
+        if (formData.authors.length === 1) {
+            toast.error('You must have at least one author');
+            return;
+        }
         setFormData((prev) => ({
             ...prev,
             authors: prev.authors.filter((author) => author !== authorToRemove),
@@ -322,101 +327,83 @@ export default function PostEditor() {
                         />
 
                         {/* Authors */}
-                        <div className="space-y-2">
-                            <Label className="flex items-center gap-2 text-base font-semibold">
-                                <User className="h-4 w-4" />
-                                Authors
-                            </Label>
-                            <div className="space-y-3">
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={newAuthor}
-                                        onChange={(e) =>
-                                            setNewAuthor(e.target.value)
-                                        }
-                                        onKeyPress={(e) =>
-                                            handleKeyPress(e, 'author')
-                                        }
-                                        placeholder="Add author wallet address..."
-                                        className="flex-1 font-mono text-sm"
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleAddAuthor}
-                                        disabled={!newAuthor.trim()}
-                                    >
-                                        Add
-                                    </Button>
+                        <div className="flex items-center justify-between">
+                            {formData.authors.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.authors.map((author, index) => (
+                                        <UserBadge
+                                            key={`${author}-${index}`}
+                                            author={author}
+                                            buttonPosition="right"
+                                            onClick={() =>
+                                                handleRemoveAuthor(author)
+                                            }
+                                            showTooltip={true}
+                                        />
+                                    ))}
                                 </div>
-                                {formData.authors.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {formData.authors.map(
-                                            (author, index) => (
-                                                <UserBadge
-                                                    key={`${author}-${index}`}
-                                                    author={author}
-                                                    buttonPosition="right"
-                                                    onClick={() =>
-                                                        handleRemoveAuthor(
-                                                            author
-                                                        )
-                                                    }
-                                                    showTooltip={true}
-                                                />
-                                            )
-                                        )}
-                                    </div>
-                                )}
+                            )}
+                            <div className="flex gap-2">
+                                <Input
+                                    value={newAuthor}
+                                    onChange={(e) =>
+                                        setNewAuthor(e.target.value)
+                                    }
+                                    onKeyPress={(e) =>
+                                        handleKeyPress(e, 'author')
+                                    }
+                                    placeholder="Add author..."
+                                    className="max-w-36 text-sm font-normal"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleAddAuthor}
+                                    disabled={!newAuthor.trim()}
+                                >
+                                    <UserPlus2 className="h-2 w-2" />
+                                </Button>
                             </div>
                         </div>
 
                         {/* Labels */}
-                        <div className="space-y-2">
-                            <Label className="text-base font-semibold">
-                                Labels
-                            </Label>
-                            <div className="space-y-3">
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={newLabel}
-                                        onChange={(e) =>
-                                            setNewLabel(e.target.value)
-                                        }
-                                        onKeyPress={(e) =>
-                                            handleKeyPress(e, 'label')
-                                        }
-                                        placeholder="Add a label..."
-                                        className="flex-1"
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleAddLabel}
-                                        disabled={!newLabel.trim()}
-                                    >
-                                        Add
-                                    </Button>
+                        <div className="flex items-center justify-between">
+                            {formData.labels.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.labels.map((label, index) => (
+                                        <TagBadge
+                                            key={`${label}-${index}`}
+                                            label={label}
+                                            buttonPosition="right"
+                                            onClick={() =>
+                                                handleRemoveLabel(label)
+                                            }
+                                            showTooltip={true}
+                                        />
+                                    ))}
                                 </div>
-                                {formData.labels.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {formData.labels.map((label, index) => (
-                                            <Badge
-                                                key={index}
-                                                variant="secondary"
-                                                className="flex items-center gap-1"
-                                            >
-                                                {label}
-                                                <X
-                                                    className="hover:text-destructive h-3 w-3 cursor-pointer"
-                                                    onClick={() =>
-                                                        handleRemoveLabel(label)
-                                                    }
-                                                />
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                )}
+                            )}
+
+                            <div className="flex gap-2">
+                                <Input
+                                    value={newLabel}
+                                    onChange={(e) =>
+                                        setNewLabel(e.target.value)
+                                    }
+                                    onKeyPress={(e) =>
+                                        handleKeyPress(e, 'label')
+                                    }
+                                    placeholder="Add label..."
+                                    className="max-w-36 text-sm font-normal"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleAddLabel}
+                                    disabled={!newLabel.trim()}
+                                >
+                                    <Tag className="h-2 w-2" />
+                                </Button>
                             </div>
                         </div>
 
