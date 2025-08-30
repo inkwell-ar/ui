@@ -68,6 +68,18 @@ type BlogsContextType = {
     deletePost: (
         postId: string
     ) => Promise<{ success: boolean; error?: string }>;
+    savePost: (
+        postData: {
+            title: string;
+            description: string;
+            body: string;
+            labels: string[];
+            authors: string[];
+            published_at: number | null;
+            last_update: number;
+        },
+        postId?: string
+    ) => Promise<{ success: boolean; error?: string; postId?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -375,6 +387,91 @@ export const BlogsContextProvider = ({
         [selectedBlogSDK]
     );
 
+    // Function to save a post (create or update)
+    const savePost = useCallback(
+        async (
+            postData: {
+                title: string;
+                description: string;
+                body: string;
+                labels: string[];
+                authors: string[];
+                published_at: number | null;
+                last_update: number;
+            },
+            postId?: string
+        ): Promise<{ success: boolean; error?: string; postId?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
+            try {
+                // Prepare the data for the SDK
+                const saveData = {
+                    title: postData.title,
+                    description: postData.description,
+                    body: postData.body || '',
+                    published_at: postData.published_at || Date.now(),
+                    last_update: postData.last_update || Date.now(),
+                    labels: postData.labels,
+                    authors: postData.authors,
+                };
+
+                let result;
+                if (postId) {
+                    // Update existing post
+                    const postIdNumber = parseInt(postId);
+                    result = await selectedBlogSDK.updatePost({
+                        id: postIdNumber,
+                        data: saveData,
+                    });
+                } else {
+                    // Create new post
+                    result = await selectedBlogSDK.createPost({
+                        data: saveData,
+                    });
+                }
+
+                if (result.success) {
+                    // Refresh posts to get the updated list
+                    await getPosts();
+
+                    // For create operations, the result.data might contain the new post or post ID
+                    const newPostId =
+                        typeof result.data === 'object' && result.data
+                            ? (result.data as any).id?.toString()
+                            : typeof result.data === 'string'
+                              ? result.data
+                              : undefined;
+
+                    return {
+                        success: true,
+                        postId: newPostId,
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: postId
+                            ? 'Failed to update post'
+                            : 'Failed to create post',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to save post:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [selectedBlogSDK, getPosts]
+    );
+
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
         setBlogs([]);
@@ -599,6 +696,7 @@ export const BlogsContextProvider = ({
             addUser,
             getPosts,
             deletePost,
+            savePost,
         }),
         [
             isLoading,
@@ -618,6 +716,7 @@ export const BlogsContextProvider = ({
             addUser,
             getPosts,
             deletePost,
+            savePost,
         ]
     );
 

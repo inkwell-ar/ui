@@ -16,6 +16,8 @@ import { isArweaveTxId } from '@/lib/utils';
 import { UserBadge } from './user-badge';
 import { toast } from 'sonner';
 import { TagBadge } from './tag-badge';
+import { routesConfig } from '@/lib/routes-config';
+import { useWCContext } from '@/contexts/wc-context';
 
 interface PostFormData {
     title: string;
@@ -29,7 +31,9 @@ interface PostFormData {
 export default function PostEditor() {
     const { postId } = useParams();
     const navigate = useNavigate();
-    const { posts, isLoadingPosts, getPosts, selectedBlog } = useBlogsContext();
+    const { posts, isLoadingPosts, getPosts, selectedBlog, savePost } =
+        useBlogsContext();
+    const { walletAddress } = useWCContext();
 
     const [post, setPost] = useState<PostData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +52,12 @@ export default function PostEditor() {
 
     // Determine if this is edit mode (has postId) or create mode
     const isEditMode = Boolean(postId);
+
+    useEffect(() => {
+        if (!isEditMode) {
+            setNewAuthor(walletAddress);
+        }
+    }, [walletAddress]);
 
     useEffect(() => {
         const loadPost = async () => {
@@ -182,22 +192,57 @@ export default function PostEditor() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
+            // Validate required fields
+            if (!formData.title.trim()) {
+                toast.error('Title is required');
+                return;
+            }
+            if (!formData.description.trim()) {
+                toast.error('Description is required');
+                return;
+            }
+            if (formData.authors.length === 0) {
+                toast.error('At least one author is required');
+                return;
+            }
+
             // Always update last_update timestamp when saving
             const saveData = {
                 ...formData,
                 last_update: Date.now(),
             };
 
-            // TODO: Implement save logic using blogs context
-            console.log('Saving post:', saveData);
+            // Call savePost from blogs context
+            const result = await savePost(saveData, postId);
 
-            // Navigate back to posts list after successful save
-            if (selectedBlog) {
-                navigate(`/posts/${selectedBlog}`);
+            if (result.success) {
+                toast.success(
+                    isEditMode
+                        ? 'Post updated successfully'
+                        : 'Post created successfully'
+                );
+
+                // Navigate back to posts list or post view after successful save
+                if (selectedBlog) {
+                    const updatedPostId =
+                        (isEditMode && postId) || result.postId || '';
+                    const newRoute =
+                        (isEditMode && postId) || result.postId
+                            ? routesConfig.posts.children?.viewer?.path
+                                  .replace(':blogId', selectedBlog)
+                                  .replace(':postId', updatedPostId)
+                            : routesConfig.posts.path.replace(
+                                  ':blogId',
+                                  selectedBlog
+                              );
+                    navigate(newRoute || '');
+                }
+            } else {
+                toast.error(result.error || 'Failed to save post');
             }
         } catch (error) {
             console.error('Failed to save post:', error);
-            // TODO: Show error toast
+            toast.error('Failed to save post. Please try again.');
         } finally {
             setIsSaving(false);
         }
