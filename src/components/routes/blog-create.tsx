@@ -1,14 +1,17 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useBlogsContext } from '@/contexts/blogs-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import BlogForm, { type BlogFormData } from '@/components/blog-form';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { routesConfig } from '@/lib/routes-config';
 
 export default function BlogCreate() {
     const navigate = useNavigate();
+    const { createBlog } = useBlogsContext();
 
     const [formData, setFormData] = useState<BlogFormData>({
         title: '',
@@ -41,14 +44,32 @@ export default function BlogCreate() {
 
         setIsCreating(true);
         try {
-            // TODO: Implement blog creation logic using SDK
             console.log('Creating blog with data:', formData);
 
-            // For now, just show a placeholder message
-            toast.info('Blog creation functionality will be implemented soon');
+            const result = await createBlog({
+                title: formData.title,
+                description: formData.description,
+                logo: formData.logo,
+            });
 
-            // Navigate back to home after creation
-            navigate('/');
+            if (result.success) {
+                toast.success('Blog created successfully!');
+
+                // Navigate to the new blog's info page if we have the blogId
+                if (result.blogId) {
+                    navigate(
+                        routesConfig.blogInfo.path.replace(
+                            ':blogId',
+                            result.blogId
+                        )
+                    );
+                } else {
+                    // Fallback to home page
+                    navigate(routesConfig.home.path);
+                }
+            } else {
+                toast.error(result.error || 'Failed to create blog');
+            }
         } catch (error) {
             console.error('Failed to create blog:', error);
             toast.error('Failed to create blog. Please try again.');

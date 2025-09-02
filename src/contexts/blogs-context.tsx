@@ -22,6 +22,7 @@ import {
     type BlogPost,
 } from '@inkwell.ar/sdk';
 import { connect } from '@permaweb/aoconnect';
+import { log } from 'console';
 
 export type BlogData = {
     id: string;
@@ -80,6 +81,11 @@ type BlogsContextType = {
         },
         postId?: string
     ) => Promise<{ success: boolean; error?: string; postId?: string }>;
+    createBlog: (blogData: {
+        title: string;
+        description: string;
+        logo?: string;
+    }) => Promise<{ success: boolean; error?: string; blogId?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -472,6 +478,85 @@ export const BlogsContextProvider = ({
         [selectedBlogSDK, getPosts]
     );
 
+    // Function to create a new blog
+    const createBlog = useCallback(
+        async (blogData: {
+            title: string;
+            description: string;
+            logo?: string;
+        }): Promise<{ success: boolean; error?: string; blogId?: string }> => {
+            try {
+                log('InkwellBlogSDK.deploy: ', InkwellBlogSDK.deploy);
+
+                // Deploy a new blog process
+                const deployResult = await InkwellBlogSDK.deploy({
+                    // wallet will be automatically detected by the SDK
+                    name: blogData.title,
+                    aoconnect: aoconnect,
+                    logLevel: LOG_LEVEL,
+                    pollForSpawn: false,
+                    onBoot: false,
+                });
+
+                log('deployResult: ', deployResult);
+
+                if (!deployResult.processId) {
+                    return {
+                        success: false,
+                        error: 'Failed to deploy blog process',
+                    };
+                }
+
+                // Create SDK instance for the new blog
+                const newBlogSDK = new InkwellBlogSDK({
+                    processId: deployResult.processId,
+                    aoconnect: aoconnect,
+                    logLevel: LOG_LEVEL,
+                });
+
+                // Set blog details
+                const detailsResult = await newBlogSDK.setBlogDetails({
+                    data: {
+                        title: blogData.title,
+                        description: blogData.description,
+                        logo: blogData.logo || '',
+                    },
+                });
+
+                if (detailsResult.success) {
+                    // Refresh blogs list to include the new blog
+                    // Note: There might be a delay before the blog appears in the registry
+                    // so we don't wait for this to complete
+                    setTimeout(() => {
+                        // Trigger a refresh of blogs after a short delay
+                        window.location.reload();
+                    }, 2000);
+
+                    return {
+                        success: true,
+                        blogId: deployResult.processId,
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Blog created but failed to set details',
+                        blogId: deployResult.processId,
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to create blog:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error occurred while creating blog',
+                };
+            }
+        },
+        [aoconnect]
+    );
+
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
         setBlogs([]);
@@ -697,6 +782,7 @@ export const BlogsContextProvider = ({
             getPosts,
             deletePost,
             savePost,
+            createBlog,
         }),
         [
             isLoading,
@@ -717,6 +803,7 @@ export const BlogsContextProvider = ({
             getPosts,
             deletePost,
             savePost,
+            createBlog,
         ]
     );
 
