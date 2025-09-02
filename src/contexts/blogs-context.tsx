@@ -19,8 +19,10 @@ import {
     InkwellBlogSDK,
     type BlogInfo,
     type BlogPermission,
+    type BlogPost,
 } from '@inkwell.ar/sdk';
 import { connect } from '@permaweb/aoconnect';
+import { log } from 'console';
 
 export type BlogData = {
     id: string;
@@ -34,13 +36,17 @@ export type BlogWallet = {
     roles: string[];
 };
 
+export type PostData = BlogPost;
+
 type BlogsContextType = {
     isLoading: boolean;
     isLoadingBlogDetails: boolean;
     isLoadingBlogWallets: boolean;
+    isLoadingPosts: boolean;
     blogs: BlogPermission[];
     blogsData: BlogData[];
     blogWallets: BlogWallet[];
+    posts: PostData[];
     setSelectedBlog: React.Dispatch<React.SetStateAction<string>>;
     selectedBlog: string;
     isAdmin: boolean;
@@ -59,6 +65,27 @@ type BlogsContextType = {
         isAdmin: boolean,
         isEditor: boolean
     ) => Promise<{ success: boolean; error?: string }>;
+    getPosts: () => Promise<{ success: boolean; error?: string }>;
+    deletePost: (
+        postId: string
+    ) => Promise<{ success: boolean; error?: string }>;
+    savePost: (
+        postData: {
+            title: string;
+            description: string;
+            body: string;
+            labels: string[];
+            authors: string[];
+            published_at: number | null;
+            last_update: number;
+        },
+        postId?: string
+    ) => Promise<{ success: boolean; error?: string; postId?: string }>;
+    createBlog: (blogData: {
+        title: string;
+        description: string;
+        logo?: string;
+    }) => Promise<{ success: boolean; error?: string; blogId?: string }>;
 };
 
 type BlogsContextProviderProps = PropsWithChildren;
@@ -74,12 +101,14 @@ export const BlogsContextProvider = ({
     const [blogs, setBlogs] = useState<BlogPermission[]>([]);
     const [blogsData, setBlogsData] = useState<BlogData[]>([]);
     const [blogWallets, setBlogWallets] = useState<BlogWallet[]>([]);
+    const [posts, setPosts] = useState<PostData[]>([]);
     const [selectedBlog, setSelectedBlog] = useState<string>('');
     const [isAdmin, setIsAdmin] = useState(false);
     const [isEditor, setIsEditor] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingBlogDetails, setIsLoadingBlogDetails] = useState(false);
     const [isLoadingBlogWallets, setIsLoadingBlogWallets] = useState(false);
+    const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
     const { walletAddress = '', isConnected, isAuthenticated } = useWCContext();
 
@@ -282,15 +311,263 @@ export const BlogsContextProvider = ({
         [selectedBlogSDK, aoconnect]
     );
 
+    // Function to get posts for the selected blog
+    const getPosts = useCallback(async (): Promise<{
+        success: boolean;
+        error?: string;
+    }> => {
+        if (!selectedBlogSDK) {
+            return {
+                success: false,
+                error: 'No selected blog',
+            };
+        }
+
+        setIsLoadingPosts(true);
+        try {
+            const result = await selectedBlogSDK.getAllPosts();
+
+            if (result.success && result.data) {
+                // Transform the posts data to match our PostData type
+                const transformedPosts: PostData[] = result.data as BlogPost[];
+
+                setPosts(transformedPosts);
+                return { success: true };
+            } else {
+                return {
+                    success: false,
+                    error: 'Failed to fetch posts',
+                };
+            }
+        } catch (error) {
+            console.error('Failed to get posts:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
+        } finally {
+            setIsLoadingPosts(false);
+        }
+    }, [selectedBlogSDK]);
+
+    // Function to delete a post
+    const deletePost = useCallback(
+        async (
+            postId: string
+        ): Promise<{ success: boolean; error?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
+            try {
+                const postIdNumber = parseInt(postId);
+                const result = await selectedBlogSDK.deletePost({
+                    id: postIdNumber,
+                });
+
+                if (result.success) {
+                    // Update local state to remove the post
+                    setPosts((prevPosts) =>
+                        prevPosts.filter((post) => post.id !== postIdNumber)
+                    );
+                    return { success: true };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Failed to remove post',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to remove post:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [selectedBlogSDK]
+    );
+
+    // Function to save a post (create or update)
+    const savePost = useCallback(
+        async (
+            postData: {
+                title: string;
+                description: string;
+                body: string;
+                labels: string[];
+                authors: string[];
+                published_at: number | null;
+                last_update: number;
+            },
+            postId?: string
+        ): Promise<{ success: boolean; error?: string; postId?: string }> => {
+            if (!selectedBlogSDK) {
+                return {
+                    success: false,
+                    error: 'No selected blog',
+                };
+            }
+            try {
+                // Prepare the data for the SDK
+                const saveData = {
+                    title: postData.title,
+                    description: postData.description,
+                    body: postData.body || '',
+                    published_at: postData.published_at || Date.now(),
+                    last_update: postData.last_update || Date.now(),
+                    labels: postData.labels,
+                    authors: postData.authors,
+                };
+
+                let result;
+                if (postId) {
+                    // Update existing post
+                    const postIdNumber = parseInt(postId);
+                    result = await selectedBlogSDK.updatePost({
+                        id: postIdNumber,
+                        data: saveData,
+                    });
+                } else {
+                    // Create new post
+                    result = await selectedBlogSDK.createPost({
+                        data: saveData,
+                    });
+                }
+
+                if (result.success) {
+                    // Refresh posts to get the updated list
+                    await getPosts();
+
+                    // For create operations, the result.data might contain the new post or post ID
+                    const newPostId =
+                        typeof result.data === 'object' && result.data
+                            ? (result.data as any).id?.toString()
+                            : typeof result.data === 'string'
+                              ? result.data
+                              : undefined;
+
+                    return {
+                        success: true,
+                        postId: newPostId,
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: postId
+                            ? 'Failed to update post'
+                            : 'Failed to create post',
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to save post:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+        },
+        [selectedBlogSDK, getPosts]
+    );
+
+    // Function to create a new blog
+    const createBlog = useCallback(
+        async (blogData: {
+            title: string;
+            description: string;
+            logo?: string;
+        }): Promise<{ success: boolean; error?: string; blogId?: string }> => {
+            try {
+                log('InkwellBlogSDK.deploy: ', InkwellBlogSDK.deploy);
+
+                // Deploy a new blog process
+                const deployResult = await InkwellBlogSDK.deploy({
+                    // wallet will be automatically detected by the SDK
+                    name: blogData.title,
+                    aoconnect: aoconnect,
+                    logLevel: LOG_LEVEL,
+                    pollForSpawn: false,
+                    onBoot: false,
+                });
+
+                log('deployResult: ', deployResult);
+
+                if (!deployResult.processId) {
+                    return {
+                        success: false,
+                        error: 'Failed to deploy blog process',
+                    };
+                }
+
+                // Create SDK instance for the new blog
+                const newBlogSDK = new InkwellBlogSDK({
+                    processId: deployResult.processId,
+                    aoconnect: aoconnect,
+                    logLevel: LOG_LEVEL,
+                });
+
+                // Set blog details
+                const detailsResult = await newBlogSDK.setBlogDetails({
+                    data: {
+                        title: blogData.title,
+                        description: blogData.description,
+                        logo: blogData.logo || '',
+                    },
+                });
+
+                if (detailsResult.success) {
+                    // Refresh blogs list to include the new blog
+                    // Note: There might be a delay before the blog appears in the registry
+                    // so we don't wait for this to complete
+                    setTimeout(() => {
+                        // Trigger a refresh of blogs after a short delay
+                        window.location.reload();
+                    }, 2000);
+
+                    return {
+                        success: true,
+                        blogId: deployResult.processId,
+                    };
+                } else {
+                    return {
+                        success: false,
+                        error: 'Blog created but failed to set details',
+                        blogId: deployResult.processId,
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to create blog:', error);
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error occurred while creating blog',
+                };
+            }
+        },
+        [aoconnect]
+    );
+
     // Memoize the reset function to prevent unnecessary re-renders
     const resetState = useCallback(() => {
         setBlogs([]);
         setBlogsData([]);
         setBlogWallets([]);
+        setPosts([]);
         setSelectedBlog('');
         setIsLoading(false);
         setIsLoadingBlogDetails(false);
         setIsLoadingBlogWallets(false);
+        setIsLoadingPosts(false);
         setIsAdmin(false);
         setIsEditor(false);
     }, []);
@@ -489,9 +766,11 @@ export const BlogsContextProvider = ({
             isLoading,
             isLoadingBlogDetails,
             isLoadingBlogWallets,
+            isLoadingPosts,
             blogs,
             blogsData,
             blogWallets,
+            posts,
             selectedBlog,
             setSelectedBlog,
             isAdmin,
@@ -500,14 +779,20 @@ export const BlogsContextProvider = ({
             updateBlogDetails,
             removeUser,
             addUser,
+            getPosts,
+            deletePost,
+            savePost,
+            createBlog,
         }),
         [
             isLoading,
             isLoadingBlogDetails,
             isLoadingBlogWallets,
+            isLoadingPosts,
             blogs,
             blogsData,
             blogWallets,
+            posts,
             selectedBlog,
             isAdmin,
             isEditor,
@@ -515,6 +800,10 @@ export const BlogsContextProvider = ({
             updateBlogDetails,
             removeUser,
             addUser,
+            getPosts,
+            deletePost,
+            savePost,
+            createBlog,
         ]
     );
 

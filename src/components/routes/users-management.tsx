@@ -14,6 +14,7 @@ import { Edit, Trash2, UserPlus2, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { formatWallet } from '@/lib/utils';
 
 export default function UsersManagement() {
     const { blogWallets, isLoadingBlogWallets, selectedBlog, removeUser } =
@@ -21,10 +22,6 @@ export default function UsersManagement() {
     const [showRemoveUserDialog, setShowRemoveUserDialog] = useState(false);
     const [userToRemove, setUserToRemove] = useState<string | null>(null);
     const [isRemoving, setIsRemoving] = useState(false);
-
-    const formatWallet = (wallet: string) => {
-        return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
-    };
 
     const hasRole = (blogWallet: any, role: string) => {
         return blogWallet.roles.includes(role);

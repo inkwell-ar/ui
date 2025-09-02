@@ -30,3 +30,12 @@ export function getImageSource(logo: string): string {
     }
     return ''; // Return empty string for invalid logos
 }
+
+// Utility function to format a wallet address
+export function formatWallet(
+    wallet: string,
+    prefixLength = 6,
+    suffixLength = 4
+) {
+    return wallet.slice(0, prefixLength) + '...' + wallet.slice(-suffixLength);
+}

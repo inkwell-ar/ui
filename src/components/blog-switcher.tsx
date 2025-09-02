@@ -162,12 +162,18 @@ export function BlogSwitcher() {
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 p-2">
+                        <DropdownMenuItem
+                            className="gap-2 p-2"
+                            onClick={() =>
+                                navigate(routesConfig.blogCreate.path)
+                            }
+                            disabled={!isConnected || !isAuthenticated}
+                        >
                             <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                                 <Feather className="size-4" />
                             </div>
                             <div className="text-muted-foreground font-medium">
-                                Add blog
+                                Create blog
                             </div>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
